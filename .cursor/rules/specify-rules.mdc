@@ -1,0 +1,29 @@
+# WorkLog Development Guidelines
+
+Auto-generated from all feature plans. Last updated: 2026-01-26
+
+## Active Technologies
+
+- TypeScript 5.x, Node.js 20.x + Next.js 14 (App Router), @google-cloud/firestore, @google-cloud/tasks, @google-cloud/aiplatform (Vertex AI), NextAuth.js (GitHub OAuth) (001-github-asset-generator)
+
+## Project Structure
+
+```text
+src/
+tests/
+```
+
+## Commands
+
+npm test && npm run lint
+
+## Code Style
+
+TypeScript 5.x, Node.js 20.x: Follow standard conventions
+
+## Recent Changes
+
+- 001-github-asset-generator: Added TypeScript 5.x, Node.js 20.x + Next.js 14 (App Router), @google-cloud/firestore, @google-cloud/tasks, @google-cloud/aiplatform (Vertex AI), NextAuth.js (GitHub OAuth)
+
+<!-- MANUAL ADDITIONS START -->
+<!-- MANUAL ADDITIONS END -->
