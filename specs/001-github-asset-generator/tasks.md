@@ -45,79 +45,79 @@
 
 ### Phase 1 — Infrastructure
 
-- [ ] **T006** [P] Implement Firestore client and collection refs  
+- [X] **T006** [P] Implement Firestore client and collection refs  
   **Description**: Add `src/infrastructure/firestore/client.ts` and `collections.ts`. Initialize Firestore; export typed refs for `users`, `repositories`, `pr-events`, `asset-cards`, `decision-logs`.  
   **Acceptance Criteria**: Client connects with `GOOGLE_APPLICATION_CREDENTIALS`; collections resolvable.
 
-- [ ] **T007** [P] Implement Cloud Tasks client  
+- [X] **T007** [P] Implement Cloud Tasks client  
   **Description**: Add `src/infrastructure/cloud-tasks/client.ts`. Create task enqueue helper using queue name and location from env.  
   **Acceptance Criteria**: Can enqueue a task to the configured queue; no runtime errors.
 
-- [ ] **T008** [P] Implement Vertex AI Gemini client  
+- [X] **T008** [P] Implement Vertex AI Gemini client  
   **Description**: Add `src/infrastructure/vertex-ai/client.ts`. Export a function to call Gemini (e.g. `generateContent`) with project, location, model from env.  
   **Acceptance Criteria**: Client invocable; returns a valid response for a trivial prompt.
 
-- [ ] **T009** [P] Implement GitHub API client  
+- [X] **T009** [P] Implement GitHub API client  
   **Description**: Add `src/infrastructure/github/client.ts`. Use Octokit or fetch with OAuth token. Support: list repos, get PR, get PR diff, create webhook, delete webhook.  
   **Acceptance Criteria**: Can list user repos and fetch a PR + diff given token; can create/delete webhook for a repo.
 
 ### Phase 1 — Backend Services
 
-- [ ] **T010** Implement auth service  
+- [X] **T010** Implement auth service  
   **Description**: Add `src/services/auth/auth.service.ts`. Use NextAuth.js; implement GitHub provider; persist user in Firestore `users` (or ensure NextAuth adapter writes user). Handle token storage per data-model.  
   **Acceptance Criteria**: Login via GitHub creates/updates user; session available in API routes.
 
-- [ ] **T011** Implement repository service  
+- [X] **T011** Implement repository service  
   **Description**: Add `src/services/repository/repository.service.ts`. Connect/disconnect repo: create GitHub webhook, store in `repositories`, update user `connectedRepositoryIds`. Disconnect: remove webhook, update status.  
   **Acceptance Criteria**: Connect stores repo + webhookId; disconnect removes webhook and updates repo status.
 
-- [ ] **T012** Implement PR event ingestion (storage only)  
+- [X] **T012** Implement PR event ingestion (storage only)  
   **Description**: Add `src/services/pr-event/pr-event.service.ts`. `ingest(webhookPayload)`: parse PR event, validate repo is connected, write to `pr-events` with `processingStatus: "pending"`, `githubEventId` for idempotency. No processing yet.  
   **Acceptance Criteria**: Ingest creates `pr-events` doc; duplicate `githubEventId` does not create duplicate (idempotent).
 
 ### Phase 1 — Models & Schemas
 
-- [ ] **T013** [P] Add TypeScript models per data-model.md  
+- [X] **T013** [P] Add TypeScript models per data-model.md  
   **Description**: Create `src/models/user.model.ts`, `repository.model.ts`, `pr-event.model.ts`, `asset-card.model.ts`, `decision-log.model.ts` with interfaces matching Firestore schema.  
   **Acceptance Criteria**: All entities have types; field names and enums match data-model.
 
-- [ ] **T014** [P] Add AssetCard JSON schema and validation helper  
+- [X] **T014** [P] Add AssetCard JSON schema and validation helper  
   **Description**: Create `src/schemas/asset-card-schema.ts` with fixed schema (title, description, impact, technologies, contributions, metrics). Export `validateAssetCard(data): boolean`.  
   **Acceptance Criteria**: Valid payload passes; invalid (missing/mistyped fields) fails.
 
-- [ ] **T015** [P] Add request validation schemas  
+- [X] **T015** [P] Add request validation schemas  
   **Description**: Create `src/schemas/validation.schemas.ts` for API payloads (e.g. repository connect `{ owner, name }`, export `{ assetCardIds, format }`).  
   **Acceptance Criteria**: Repository connect and export payloads validated; invalid requests identifiable.
 
 ### Phase 1 — API Routes
 
-- [ ] **T016** Wire NextAuth.js API routes  
+- [X] **T016** Wire NextAuth.js API routes  
   **Description**: Add `app/api/auth/[...nextauth]/route.ts`. Configure GitHub provider, callbacks, session. Ensure `users` in Firestore aligned with data-model.  
   **Acceptance Criteria**: `GET /api/auth/signin`, callback, `POST /api/auth/signout` work; session cookie set.
 
-- [ ] **T017** Implement `GET /api/repositories` and `POST /api/repositories/connect`  
+- [X] **T017** Implement `GET /api/repositories` and `POST /api/repositories/connect`  
   **Description**: Add `app/api/repositories/route.ts`. GET: list user's repositories from Firestore. POST: validate body, call repository service connect, return repo. Use auth middleware.  
   **Acceptance Criteria**: GET returns user repos; POST connects repo and returns it; 401 when unauthenticated.
 
-- [ ] **T018** Implement `DELETE /api/repositories/[repositoryId]`  
+- [X] **T018** Implement `DELETE /api/repositories/[repositoryId]`  
   **Description**: Add `app/api/repositories/[repositoryId]/route.ts`. Verify repo belongs to user, call disconnect, return success.  
   **Acceptance Criteria**: Delete disconnects repo and removes webhook; 403 for wrong user, 404 if missing.
 
-- [ ] **T019** Implement GitHub webhook receiver `POST /api/webhooks/github`  
+- [X] **T019** Implement GitHub webhook receiver `POST /api/webhooks/github`  
   **Description**: Add `app/api/webhooks/github/route.ts`. Verify `X-Hub-Signature-256` with `GITHUB_WEBHOOK_SECRET`. Parse `pull_request` events only. Call PR event ingestion service, then enqueue Cloud Task for processing. **Return 200 immediately**; do not process in request. Use `X-GitHub-Delivery` as idempotency key (e.g. in task name or payload).  
   **Acceptance Criteria**: Valid webhook → 200 + task enqueued; invalid signature → 401; non-PR events ignored; duplicate delivery ID does not create duplicate work.
 
 ### Phase 1 — Middleware
 
-- [ ] **T020** [P] Add auth middleware for API routes  
+- [X] **T020** [P] Add auth middleware for API routes  
   **Description**: Add `src/middleware/auth.middleware.ts`. Export helper used by API routes to assert session and `userId`.  
   **Acceptance Criteria**: Protected routes reject unauthenticated requests with 401.
 
-- [ ] **T021** [P] Add error-handling middleware  
+- [X] **T021** [P] Add error-handling middleware  
   **Description**: Add `src/middleware/error.middleware.ts`. Centralized error handler; map known errors to HTTP status and JSON body.  
   **Acceptance Criteria**: API errors return consistent `{ error: { code, message } }`; 500 for unexpected errors.
 
-- [ ] **T022** [P] Add logging utility  
+- [X] **T022** [P] Add logging utility  
   **Description**: Add `src/utils/logger.ts`. Structured logger for API and workers (e.g. request id, userId, level).  
   **Acceptance Criteria**: Logs emitted in structured form; usable from routes and workers.
 

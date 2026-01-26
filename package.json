@@ -12,6 +12,8 @@
     "@google-cloud/firestore": "^7.0.0",
     "@google-cloud/tasks": "^4.0.0",
     "@google-cloud/aiplatform": "^4.0.0",
+    "@google/generative-ai": "^0.2.0",
+    "@octokit/rest": "^20.0.0",
     "next-auth": "^4.24.0"
   },
   "devDependencies": {

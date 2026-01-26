@@ -1,0 +1,105 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { requireAuth } from '@/src/middleware/auth.middleware';
+import { handleError } from '@/src/middleware/error.middleware';
+import { getUserRepositories, connectRepository } from '@/src/services/repository/repository.service';
+import { getUserById } from '@/src/services/auth/auth.service';
+import { validateRepositoryConnect } from '@/src/schemas/validation.schemas';
+import { logger } from '@/src/utils/logger';
+
+/**
+ * GET /api/repositories
+ * List user's connected repositories
+ */
+export async function GET(request: NextRequest) {
+  try {
+    const authResult = await requireAuth(request);
+    if (authResult instanceof NextResponse) {
+      return authResult;
+    }
+
+    const { userId } = authResult;
+    const repositories = await getUserRepositories(userId);
+
+    // Format response (exclude sensitive fields)
+    const response = repositories.map((repo) => ({
+      repositoryId: repo.repositoryId,
+      githubRepoId: repo.githubRepoId,
+      owner: repo.owner,
+      name: repo.name,
+      fullName: repo.fullName,
+      isPrivate: repo.isPrivate,
+      connectionStatus: repo.connectionStatus,
+      connectedAt: repo.connectedAt.toDate().toISOString(),
+      lastSyncTimestamp: repo.lastSyncTimestamp?.toDate().toISOString() || null,
+    }));
+
+    return NextResponse.json({ repositories: response });
+  } catch (error) {
+    return handleError(error);
+  }
+}
+
+/**
+ * POST /api/repositories
+ * Connect a GitHub repository for PR event monitoring
+ */
+export async function POST(request: NextRequest) {
+  try {
+    const authResult = await requireAuth(request);
+    if (authResult instanceof NextResponse) {
+      return authResult;
+    }
+
+    const { userId } = authResult;
+
+    // Parse and validate request body
+    const body = await request.json();
+    if (!validateRepositoryConnect(body)) {
+      return NextResponse.json(
+        { error: { code: 'VALIDATION_ERROR', message: 'Invalid request body' } },
+        { status: 400 }
+      );
+    }
+
+    // Get user to retrieve OAuth token
+    const user = await getUserById(userId);
+    if (!user) {
+      return NextResponse.json(
+        { error: { code: 'NOT_FOUND', message: 'User not found' } },
+        { status: 404 }
+      );
+    }
+
+    // Get webhook configuration
+    const webhookUrl = process.env.GITHUB_WEBHOOK_URL || `${process.env.NEXTAUTH_URL}/api/webhooks/github`;
+    const webhookSecret = process.env.GITHUB_WEBHOOK_SECRET || '';
+
+    if (!webhookSecret) {
+      logger.warn('GITHUB_WEBHOOK_SECRET not configured', { userId });
+    }
+
+    // Connect repository
+    const repository = await connectRepository({
+      userId,
+      owner: body.owner,
+      name: body.name,
+      oauthToken: user.oauthToken, // TODO: Decrypt token
+      webhookUrl,
+      webhookSecret,
+    });
+
+    // Format response (exclude sensitive fields)
+    const response = {
+      repositoryId: repository.repositoryId,
+      githubRepoId: repository.githubRepoId,
+      fullName: repository.fullName,
+      connectionStatus: repository.connectionStatus,
+      webhookId: repository.webhookId,
+      connectedAt: repository.connectedAt.toDate().toISOString(),
+    };
+
+    return NextResponse.json(response, { status: 201 });
+  } catch (error) {
+    return handleError(error);
+  }
+}
