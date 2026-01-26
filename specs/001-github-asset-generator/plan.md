@@ -206,7 +206,7 @@ workers/
 
 # Configuration files
 config/
-└── firestore.rules.ts      # Firestore security rules
+└── firestore.rules         # Firestore security rules (deploy as firestore.rules per GCP)
 
 # Tests
 tests/
@@ -464,6 +464,17 @@ Phase 5 (UI Implementation)
 - Bulk operations
 - Custom export templates
 - Analytics dashboard
+
+## Edge Cases (MVP)
+
+MVP で扱うエッジケースと対応方針は `tasks.md` の **Edge Cases & MVP Handling** に記載。要約:
+
+- **リポ切断中・アクセス不能リポ**: T025 で処理前にリポ接続・ユーザーアクセス確認; 不可なら PR イベント failed、スキップ。
+- **LLM 無効出力**: T026/T028 で AssetCard `status: "flagged"`、`validationErrors` 保存; インボックスでユーザーが編集 or 却下 (flagged-for-review)。
+- **重複 PR イベント**: T019/T024 で `X-GitHub-Delivery` / `githubEventId` による冪等。
+- **エクスポートテンプレート失敗**: T039 で 500 + ログ。
+- **巨大 diff**: T023 で cost-aware  truncation + `diffStats`。
+- **トークン失効**: NextAuth リフレッシュ; 失敗時は再認証。quickstart に記載。
 
 ## Complexity Tracking
 

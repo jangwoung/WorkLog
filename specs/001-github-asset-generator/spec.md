@@ -38,7 +38,7 @@ An engineer has connected their repositories. When they create or merge a Pull R
 1. **Given** a user has connected at least one repository, **When** a Pull Request is created or merged in that repository, **Then** the system detects the PR event asynchronously
 2. **Given** a PR event is detected, **When** the system processes the PR context (title, description, comments) and diff, **Then** the PR data is stored for processing
 3. **Given** PR data is ready for processing, **When** the system invokes the LLM transformation pipeline, **Then** an AssetCard is generated with structured fields conforming to a fixed schema
-4. **Given** an AssetCard is generated, **When** the system validates it against the schema, **Then** the AssetCard is stored in the user's asset library if valid, or flagged for review if invalid
+4. **Given** an AssetCard is generated, **When** the system validates it against the schema, **Then** the AssetCard is stored in the user's library (inbox) if valid, or flagged for review if invalid
 5. **Given** multiple PR events occur, **When** the system processes them, **Then** each PR generates a separate AssetCard (idempotent processing ensures no duplicates)
 
 ---

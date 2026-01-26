@@ -15,25 +15,25 @@
 
 ### Phase 0 — Infrastructure
 
-- [ ] **T001** Create project structure per plan.md  
+- [X] **T001** Create project structure per plan.md  
   **Description**: Create directories `app/` (auth, dashboard, api, components, hooks, context, styles), `src/` (infrastructure, controllers, services, middleware, models, schemas, types, utils), `workers/pr-event-processor/`, `workers/asset-generator/`, `config/`, `tests/` (contract, integration, unit), `public/`.  
   **Acceptance Criteria**: All paths exist; structure matches plan.md Project Structure.
 
-- [ ] **T002** Initialize Next.js 14 (App Router) project with TypeScript  
+- [X] **T002** Initialize Next.js 14 (App Router) project with TypeScript  
   **Description**: Run `npx create-next-app` with App Router, TypeScript, ESLint. Configure `next.config.js`, `tsconfig.json`, `package.json` at repo root.  
   **Acceptance Criteria**: `npm run dev` starts Next.js; TypeScript compiles; App Router routes resolve.
 
-- [ ] **T003** [P] Add dependencies per plan  
+- [X] **T003** [P] Add dependencies per plan  
   **Description**: Install `@google-cloud/firestore`, `@google-cloud/tasks`, `@google-cloud/aiplatform`, `next-auth`. Add to `package.json`.  
   **Acceptance Criteria**: All packages install; no peer-dependency errors.
 
-- [ ] **T004** [P] Add `.env.example` and document required variables  
+- [X] **T004** [P] Add `.env.example` and document required variables  
   **Description**: Create `.env.example` with `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `NEXTAUTH_URL`, `NEXTAUTH_SECRET`, `GOOGLE_CLOUD_PROJECT`, `VERTEX_AI_LOCATION`, `VERTEX_AI_MODEL`, `CLOUD_TASKS_QUEUE_NAME`, `CLOUD_TASKS_LOCATION`, `GITHUB_WEBHOOK_SECRET`.  
   **Acceptance Criteria**: Quickstart env section can be reproduced from `.env.example`; no secrets in repo.
 
-- [ ] **T005** [P] Add Firestore security rules scaffold  
-  **Description**: Create `config/firestore.rules.ts` (or `.rules`), scoping `users`, `repositories`, `pr-events`, `asset-cards`, `decision-logs` by `userId` for read/write.  
-  **Acceptance Criteria**: Rules file exists; draft rules enforce `request.auth.uid` match on `userId`.
+- [X] **T005** [P] Add Firestore security rules scaffold  
+  **Description**: Create `config/firestore.rules`, scoping `users`, `repositories`, `pr-events`, `asset-cards`, `decision-logs` by `userId` for read/write. Deploy as `firestore.rules` per GCP when applicable.  
+  **Acceptance Criteria**: Rules file exists at `config/firestore.rules`; draft rules enforce `request.auth.uid` match on `userId`.
 
 ---
 
@@ -142,12 +142,12 @@
 ### Phase 2 — Workers / Async Jobs
 
 - [ ] **T025** Implement PR event processor worker  
-  **Description**: Add `workers/pr-event-processor/`. HTTP handler invoked by Cloud Tasks. Payload: `prEventId` (or equivalent). Load PR event, fetch PR + diff via GitHub client, run diff processor, store enriched PR event. Enqueue **asset-generator** task with `prEventId`.  
-  **Acceptance Criteria**: Worker runs from Cloud Task; fetches PR/diff; enqueues asset-generator task; updates PR event status.
+  **Description**: Add `workers/pr-event-processor/`. HTTP handler invoked by Cloud Tasks. Payload: `prEventId` (or equivalent). Load PR event. **Before processing**: verify repository still connected and user has access (query `repositories`); if disconnected or inaccessible, mark PR event `processingStatus: "failed"`, skip fetch, do not enqueue asset-generator. Otherwise: fetch PR + diff via GitHub client, run diff processor, store enriched PR event, enqueue **asset-generator** task with `prEventId`.  
+  **Acceptance Criteria**: Worker runs from Cloud Task; skips processing when repo disconnected/inaccessible; otherwise fetches PR/diff, enqueues asset-generator, updates PR event status.
 
 - [ ] **T026** Implement asset-generator worker (LLM pipeline)  
-  **Description**: Add `workers/asset-generator/`. HTTP handler invoked by Cloud Tasks. Load PR event, call Extract → Synthesize (see T027), validate with AssetCard schema, create `asset-cards` doc (`status: "inbox"`), update PR event `assetCardId` and `processingStatus: "completed"`. On validation failure, retry up to 2 times per research; then mark `failed`.  
-  **Acceptance Criteria**: Worker produces AssetCard from PR event; schema validation applied; idempotent per T024.
+  **Description**: Add `workers/asset-generator/`. HTTP handler invoked by Cloud Tasks. Load PR event, call Extract → Synthesize (see T027), validate with AssetCard schema. If valid: create `asset-cards` doc (`status: "inbox"`), update PR event `assetCardId` and `processingStatus: "completed"`. If invalid: retry up to 2 times per research; then create AssetCard with `status: "flagged"`, store `validationErrors` (and partial LLM output if useful), link to PR event (**flagged-for-review** flow). Idempotent per T024.  
+  **Acceptance Criteria**: Valid → AssetCard `inbox`; invalid after retries → AssetCard `flagged` with validation errors; no duplicate AssetCards.
 
 ### Phase 2 — LLM Integration
 
@@ -158,8 +158,8 @@
 ### Phase 2 — AssetCard Orchestration
 
 - [ ] **T028** Implement AssetCard generation orchestration service  
-  **Description**: Add `src/services/asset-card/asset-card.service.ts` (or extend). `generateFromPrEvent(prEventId)`: load PR event, run diff processor, call LLM pipeline, validate, create AssetCard, update PR event. Used by asset-generator worker.  
-  **Acceptance Criteria**: Service creates AssetCard and links to PR event; respects idempotency.
+  **Description**: Add `src/services/asset-card/asset-card.service.ts` (or extend). `generateFromPrEvent(prEventId)`: load PR event, run diff processor, call LLM pipeline, validate. If valid: create AssetCard `status: "inbox"`. If invalid after retries: create AssetCard `status: "flagged"` with `validationErrors`. Update PR event. Used by asset-generator worker.  
+  **Acceptance Criteria**: Service creates AssetCard (inbox or flagged) and links to PR event; respects idempotency.
 
 ### Phase 2 — Webhook / API
 
@@ -178,8 +178,8 @@
 ### Phase 3 — Backend Services
 
 - [ ] **T030** Implement AssetCard CRUD and state transitions  
-  **Description**: Extend `src/services/asset-card/asset-card.service.ts`. List inbox (`status: "inbox"`), list library (approved/edited). Get by id. Approve: set `approvedAt`, `status: "approved"`, move to library. Edit: apply patches, `editedAt`, `editHistory`, `status: "edited"`. Reject: delete or soft-delete. Enforce userId.  
-  **Acceptance Criteria**: Inbox/library queries correct; approve/edit/reject update state and persist.
+  **Description**: Extend `src/services/asset-card/asset-card.service.ts`. List inbox (`status: "inbox"` OR `"flagged"`), list library (approved/edited). Get by id. Approve: set `approvedAt`, `status: "approved"`, move to library (accepts `inbox` or `flagged`). Edit: apply patches, `editedAt`, `editHistory`, `status: "edited"` (accepts `inbox` or `flagged`; fixes validation issues for flagged). Reject: delete or soft-delete. Enforce userId.  
+  **Acceptance Criteria**: Inbox includes inbox + flagged; library correct; approve/edit/reject apply to inbox and flagged; state persists.
 
 - [ ] **T031** Implement decision log service  
   **Description**: Add `src/services/decision-log/` (or module). Log `approve` / `reject` / `edit` with `assetCardId`, `actionType`, `editedFields` when edit, `timestamp`.  
@@ -188,8 +188,8 @@
 ### Phase 3 — API Routes
 
 - [ ] **T032** Implement `GET /api/assets/inbox`  
-  **Description**: Add `app/api/assets/inbox/route.ts`. Paginated list of user's AssetCards with `status: "inbox"`, ordered by `generatedAt` desc.  
-  **Acceptance Criteria**: Returns inbox items; pagination (limit/cursor) works; 401 when unauthenticated.
+  **Description**: Add `app/api/assets/inbox/route.ts`. Paginated list of user's AssetCards with `status: "inbox"` OR `"flagged"` (pending review), ordered by `generatedAt` desc. Include `validationErrors` when `status: "flagged"`.  
+  **Acceptance Criteria**: Returns inbox + flagged items; pagination (limit/cursor) works; 401 when unauthenticated.
 
 - [ ] **T033** Implement `GET /api/assets/library`  
   **Description**: Add `app/api/assets/library/route.ts`. Paginated list of approved/edited AssetCards; optional `status` filter.  
@@ -200,12 +200,12 @@
   **Acceptance Criteria**: 200 with AssetCard; 403/404 when not owner or missing.
 
 - [ ] **T035** Implement `POST /api/assets/[assetCardId]/approve`  
-  **Description**: Add `app/api/assets/[assetCardId]/approve/route.ts`. Call asset-card service approve; log decision.  
-  **Acceptance Criteria**: AssetCard moves to library as approved; decision logged; 400 if not inbox.
+  **Description**: Add `app/api/assets/[assetCardId]/approve/route.ts`. Call asset-card service approve; log decision. Accepts `status: "inbox"` or `"flagged"`.  
+  **Acceptance Criteria**: AssetCard moves to library as approved; decision logged; 400 if not inbox or flagged.
 
 - [ ] **T036** Implement `POST /api/assets/[assetCardId]/edit`  
-  **Description**: Add `app/api/assets/[assetCardId]/edit/route.ts`. Validate body (partial AssetCard fields), call edit service, log decision.  
-  **Acceptance Criteria**: Edits applied; editHistory updated; decision logged; validation enforced.
+  **Description**: Add `app/api/assets/[assetCardId]/edit/route.ts`. Validate body (partial AssetCard fields), call edit service, log decision. Applies to `inbox` and `flagged` (user can fix validation issues on flagged).  
+  **Acceptance Criteria**: Edits applied; editHistory updated; decision logged; validation enforced; supported for inbox and flagged.
 
 - [ ] **T037** Implement `DELETE /api/assets/[assetCardId]`  
   **Description**: Add `app/api/assets/[assetCardId]/route.ts` DELETE. Soft-delete or remove AssetCard; log reject.  
@@ -228,8 +228,8 @@
 ### Phase 4 — API Routes
 
 - [ ] **T039** Implement `POST /api/export`  
-  **Description**: Add `app/api/export/route.ts`. Validate body (`assetCardIds`, `format`). Call export service. Return JSON with `content` and metadata.  
-  **Acceptance Criteria**: Export payload validated; response matches contracts; 400/403/404 for invalid or unauthorized.
+  **Description**: Add `app/api/export/route.ts`. Validate body (`assetCardIds`, `format`). Call export service. Return JSON with `content` and metadata. **Handle export template render errors**: on template failure, return 500, log error (via T021/logger); do not expose raw error to client.  
+  **Acceptance Criteria**: Export payload validated; response matches contracts; 400/403/404 for invalid or unauthorized; 500 + logging when template render fails.
 
 ---
 
@@ -276,8 +276,8 @@
 ### Phase 5 — Inbox & Library UI
 
 - [ ] **T047** Implement inbox page  
-  **Description**: Add `app/(dashboard)/inbox/page.tsx`. Fetch `GET /api/assets/inbox`; show AssetCards in inbox-style list (most recent first). Use `useAssetCards` hook.  
-  **Acceptance Criteria**: Inbox lists pending AssetCards; empty state when none.
+  **Description**: Add `app/(dashboard)/inbox/page.tsx`. Fetch `GET /api/assets/inbox`; show AssetCards (inbox + flagged) in inbox-style list (most recent first). Visually distinguish `flagged` items (e.g. badge, validationErrors). Use `useAssetCards` hook.  
+  **Acceptance Criteria**: Inbox lists pending AssetCards (inbox + flagged); flagged clearly marked; empty state when none.
 
 - [ ] **T048** Implement library page  
   **Description**: Add `app/(dashboard)/library/page.tsx`. Fetch `GET /api/assets/library`; show approved/edited AssetCards.  
@@ -287,9 +287,9 @@
   **Description**: Create `AssetCardItem.tsx`, `AssetCardDetail.tsx`, `AssetCardEditor.tsx` in `app/components/features/AssetCard/`. Item for list; Detail for view; Editor for lightweight edit.  
   **Acceptance Criteria**: Inbox uses Item; Detail shows full card; Editor allows field edits and save.
 
-- [ ] **T050** Wire approve and edit actions in inbox  
-  **Description**: From inbox, approve (no edit) or open editor and save. Call `POST /api/assets/[id]/approve` or `.../edit`. Update local state or refetch.  
-  **Acceptance Criteria**: Approve and edit work; AssetCard moves to library; UI updates.
+- [ ] **T050** Wire approve and edit actions in inbox (including flagged-for-review)  
+  **Description**: From inbox, approve (no edit) or open editor and save. Call `POST /api/assets/[id]/approve` or `.../edit`. Support **flagged** items: user can edit to fix validation issues then approve, or reject. Update local state or refetch.  
+  **Acceptance Criteria**: Approve and edit work for inbox and flagged; flagged → edit → approve flow works; AssetCard moves to library; UI updates.
 
 ### Phase 5 — Export UI
 
@@ -328,14 +328,29 @@
 ### Phase 6 — Infrastructure
 
 - [ ] **T056** Harden Firestore rules and API auth  
-  **Description**: Review `config/firestore.rules`; ensure all collections scoped by `userId`. Ensure all relevant API routes use auth middleware and validate ownership.  
+  **Description**: Review `config/firestore.rules` (see T005); ensure all collections scoped by `userId`. Ensure all relevant API routes use auth middleware and validate ownership.  
   **Acceptance Criteria**: No cross-user data access; rules and routes audited.
 
 ### Phase 6 — Validation Middleware
 
 - [ ] **T057** Add validation middleware to API routes  
-  **Description**: Use `src/middleware/validation.middleware.ts` and `validation.schemas` for repository connect, asset edit, export. Return 400 with clear messages for invalid input.  
-  **Acceptance Criteria**: Invalid payloads rejected; error format consistent.
+  **Description**: Add `src/middleware/validation.middleware.ts`. **Build on T015 schemas** (`src/schemas/validation.schemas.ts`); apply to repository connect, asset edit, export routes. Return 400 with clear messages for invalid input.  
+  **Acceptance Criteria**: Invalid payloads rejected via middleware using T015 schemas; error format consistent.
+
+---
+
+## Edge Cases & MVP Handling
+
+| Edge Case (spec) | In MVP? | Handling |
+| --------------- | ------- | -------- |
+| User disconnects repo while PR events are processing | Yes | T025: before processing, verify repo still connected; if not, mark PR event failed, skip AssetCard creation. In-flight tasks may complete for already-enqueued events. |
+| PR events from repos user no longer has access to | Yes | T025: same as above; verify repository connected and user access before processing. |
+| LLM transformation fails or invalid schema data | Yes | T026/T028: create AssetCard `status: "flagged"` with `validationErrors`; user reviews in inbox, edits or rejects (U1). |
+| Duplicate PR events (webhook retries, manual) | Yes | T019, T024: idempotency via `X-GitHub-Delivery` / `githubEventId`; one AssetCard per PR event. |
+| Export format template fails to render | Yes | T039: return 500, log error; no raw error to client. |
+| Very large PR diffs exceed processing limits | Yes | T023: cost-aware diff processor; truncate (e.g. 5000 lines), use `diffStats`; SC-008 (10k lines) via truncation + stats. |
+| GitHub OAuth token expires or revoked | Yes | NextAuth refresh; if refresh fails, user re-authenticates. No dedicated task; document in quickstart. |
+| Concurrent PR events for same repo | Yes | T024: idempotency; async processing (Cloud Tasks) serializes per task. |
 
 ---
 
