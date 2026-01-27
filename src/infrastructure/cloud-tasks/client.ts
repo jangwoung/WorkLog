@@ -39,6 +39,10 @@ export async function enqueueTask(options: EnqueueTaskOptions): Promise<string> 
 
   const parent = client.queuePath(project, location, queue);
 
+  const scheduleTime = options.scheduleTime
+    ? { seconds: Math.floor(options.scheduleTime.getTime() / 1000), nanos: 0 }
+    : undefined;
+
   const task = {
     name: options.taskName ? client.taskPath(project, location, queue, options.taskName) : undefined,
     httpRequest: {
@@ -49,12 +53,13 @@ export async function enqueueTask(options: EnqueueTaskOptions): Promise<string> 
       },
       body: Buffer.from(JSON.stringify(options.payload)).toString('base64'),
     },
-    scheduleTime: options.scheduleTime,
+    ...(scheduleTime && { scheduleTime }),
   };
 
-  const [response] = await client.createTask({ parent, task });
-  
-  if (!response.name) {
+  const result = await client.createTask({ parent, task });
+  const response = Array.isArray(result) ? result[0] : result;
+
+  if (!response?.name) {
     throw new Error('Failed to create task: no task name returned');
   }
 

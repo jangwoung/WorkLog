@@ -177,37 +177,37 @@
 
 ### Phase 3 — Backend Services
 
-- [ ] **T030** Implement AssetCard CRUD and state transitions  
+- [X] **T030** Implement AssetCard CRUD and state transitions  
   **Description**: Extend `src/services/asset-card/asset-card.service.ts`. List inbox (`status: "inbox"` OR `"flagged"`), list library (approved/edited). Get by id. Approve: set `approvedAt`, `status: "approved"`, move to library (accepts `inbox` or `flagged`). Edit: apply patches, `editedAt`, `editHistory`, `status: "edited"` (accepts `inbox` or `flagged`; fixes validation issues for flagged). Reject: delete or soft-delete. Enforce userId.  
   **Acceptance Criteria**: Inbox includes inbox + flagged; library correct; approve/edit/reject apply to inbox and flagged; state persists.
 
-- [ ] **T031** Implement decision log service  
+- [X] **T031** Implement decision log service  
   **Description**: Add `src/services/decision-log/` (or module). Log `approve` / `reject` / `edit` with `assetCardId`, `actionType`, `editedFields` when edit, `timestamp`.  
   **Acceptance Criteria**: Every approve/edit/reject creates a decision-log entry; queryable by user or asset.
 
 ### Phase 3 — API Routes
 
-- [ ] **T032** Implement `GET /api/assets/inbox`  
+- [X] **T032** Implement `GET /api/assets/inbox`  
   **Description**: Add `app/api/assets/inbox/route.ts`. Paginated list of user's AssetCards with `status: "inbox"` OR `"flagged"` (pending review), ordered by `generatedAt` desc. Include `validationErrors` when `status: "flagged"`.  
   **Acceptance Criteria**: Returns inbox + flagged items; pagination (limit/cursor) works; 401 when unauthenticated.
 
-- [ ] **T033** Implement `GET /api/assets/library`  
+- [X] **T033** Implement `GET /api/assets/library`  
   **Description**: Add `app/api/assets/library/route.ts`. Paginated list of approved/edited AssetCards; optional `status` filter.  
   **Acceptance Criteria**: Returns library items; filter and pagination work.
 
-- [ ] **T034** Implement `GET /api/assets/[assetCardId]`  
+- [X] **T034** Implement `GET /api/assets/[assetCardId]`  
   **Description**: Add `app/api/assets/[assetCardId]/route.ts`. Return single AssetCard if owned by user.  
   **Acceptance Criteria**: 200 with AssetCard; 403/404 when not owner or missing.
 
-- [ ] **T035** Implement `POST /api/assets/[assetCardId]/approve`  
+- [X] **T035** Implement `POST /api/assets/[assetCardId]/approve`  
   **Description**: Add `app/api/assets/[assetCardId]/approve/route.ts`. Call asset-card service approve; log decision. Accepts `status: "inbox"` or `"flagged"`.  
   **Acceptance Criteria**: AssetCard moves to library as approved; decision logged; 400 if not inbox or flagged.
 
-- [ ] **T036** Implement `POST /api/assets/[assetCardId]/edit`  
+- [X] **T036** Implement `POST /api/assets/[assetCardId]/edit`  
   **Description**: Add `app/api/assets/[assetCardId]/edit/route.ts`. Validate body (partial AssetCard fields), call edit service, log decision. Applies to `inbox` and `flagged` (user can fix validation issues on flagged).  
   **Acceptance Criteria**: Edits applied; editHistory updated; decision logged; validation enforced; supported for inbox and flagged.
 
-- [ ] **T037** Implement `DELETE /api/assets/[assetCardId]`  
+- [X] **T037** Implement `DELETE /api/assets/[assetCardId]`  
   **Description**: Add `app/api/assets/[assetCardId]/route.ts` DELETE. Soft-delete or remove AssetCard; log reject.  
   **Acceptance Criteria**: AssetCard removed or marked deleted; decision logged; 403/404 handled.
 

@@ -20,7 +20,7 @@ export async function getUserById(userId: string): Promise<User | null> {
       return null;
     }
 
-    return { userId: userDoc.id, ...userDoc.data() } as User;
+    return { ...userDoc.data(), userId: userDoc.id } as User;
   } catch (error) {
     logger.error('Failed to get user by ID', error, { userId });
     throw error;
@@ -43,7 +43,7 @@ export async function getUserByGitHubId(githubUserId: string): Promise<User | nu
     }
 
     const userDoc = query.docs[0];
-    return { userId: userDoc.id, ...userDoc.data() } as User;
+    return { ...userDoc.data(), userId: userDoc.id } as User;
   } catch (error) {
     logger.error('Failed to get user by GitHub ID', error, { githubUserId });
     throw error;

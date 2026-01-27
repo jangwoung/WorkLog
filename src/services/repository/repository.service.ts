@@ -107,14 +107,11 @@ export async function connectRepository(
       });
     }
 
-    // Update user's connected repository IDs
-    const user = await getUserById(userId);
-    if (user) {
-      const updatedRepoIds = user.connectedRepositoryIds.includes(repositoryId)
-        ? user.connectedRepositoryIds
-        : [...user.connectedRepositoryIds, repositoryId];
-      await updateUserConnectedRepos(userId, updatedRepoIds);
-    }
+    // Update user's connected repository IDs (user already loaded above)
+    const updatedRepoIds = user.connectedRepositoryIds.includes(repositoryId)
+      ? user.connectedRepositoryIds
+      : [...user.connectedRepositoryIds, repositoryId];
+    await updateUserConnectedRepos(userId, updatedRepoIds);
 
     logger.info('Repository connected', { userId, repositoryId, fullName: `${owner}/${name}` });
 
@@ -145,7 +142,7 @@ export async function disconnectRepository(
       throw Errors.notFound('Repository not found');
     }
 
-    const repo = { repositoryId: repoDoc.id, ...repoDoc.data() } as Repository;
+    const repo = { ...repoDoc.data(), repositoryId: repoDoc.id } as Repository;
 
     // Verify ownership
     if (repo.userId !== userId) {
@@ -195,8 +192,8 @@ export async function getUserRepositories(userId: string): Promise<Repository[]>
       .get();
 
     return query.docs.map((doc) => ({
-      repositoryId: doc.id,
       ...doc.data(),
+      repositoryId: doc.id,
     })) as Repository[];
   } catch (error) {
     logger.error('Failed to get user repositories', error, { userId });

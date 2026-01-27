@@ -71,7 +71,7 @@ export async function ingestPREvent(options: IngestPREventOptions): Promise<PREv
       throw Errors.notFound('Repository not found');
     }
 
-    const repo = { repositoryId: repoDoc.id, ...repoDoc.data() } as Repository;
+    const repo = { ...repoDoc.data(), repositoryId: repoDoc.id } as Repository;
 
     if (repo.userId !== userId) {
       throw Errors.forbidden('Repository does not belong to user');
@@ -105,8 +105,8 @@ export async function ingestPREvent(options: IngestPREventOptions): Promise<PREv
 
     if (!existingEventQuery.empty) {
       const existingEvent = {
-        prEventId: existingEventQuery.docs[0].id,
         ...existingEventQuery.docs[0].data(),
+        prEventId: existingEventQuery.docs[0].id,
       } as PREvent;
       logger.info('Duplicate PR event detected, returning existing', {
         userId,

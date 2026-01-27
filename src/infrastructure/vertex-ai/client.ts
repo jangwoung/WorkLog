@@ -44,8 +44,10 @@ export async function generateContent(options: GenerateContentOptions): Promise<
       temperature: options.temperature ?? 0.7,
       maxOutputTokens: options.maxTokens ?? 2048,
     },
-    systemInstruction: options.systemInstruction,
-  });
+    ...(options.systemInstruction && {
+      systemInstruction: options.systemInstruction,
+    }),
+  } as Parameters<typeof client.getGenerativeModel>[0]);
 
   const result = await model.generateContent(options.prompt);
   const response = await result.response;

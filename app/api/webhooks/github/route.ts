@@ -84,7 +84,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ received: true });
     }
 
-    const repo = { repositoryId: repoQuery.docs[0].id, ...repoQuery.docs[0].data() } as Repository;
+    const doc = repoQuery.docs[0];
+    const repo = { ...doc.data(), repositoryId: doc.id } as Repository;
 
     // Ingest PR event (idempotent)
     const prEvent = await ingestPREvent({

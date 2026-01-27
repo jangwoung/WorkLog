@@ -29,15 +29,15 @@ export async function checkAssetCardExists(prEventId: string): Promise<Idempoten
     if (!query.empty) {
       const assetCardDoc = query.docs[0];
       const assetCard: AssetCard = {
-        assetCardId: assetCardDoc.id,
         ...assetCardDoc.data(),
+        assetCardId: assetCardDoc.id,
       } as AssetCard;
 
       // Also fetch the PR event for context
       const prEventsCollection = getPREventsCollection();
       const prEventDoc = await prEventsCollection.doc(prEventId).get();
       const prEvent = prEventDoc.exists
-        ? ({ prEventId: prEventDoc.id, ...prEventDoc.data() } as PREvent)
+        ? ({ ...prEventDoc.data(), prEventId: prEventDoc.id } as PREvent)
         : undefined;
 
       logger.info('AssetCard already exists for PR event', {
