@@ -50,7 +50,8 @@ export function validateExportRequest(data: unknown): data is ExportRequest {
   const req = data as Partial<ExportRequest>;
   return (
     Array.isArray(req.assetCardIds) &&
-    req.assetCardIds.length > 0 &&
+    req.assetCardIds.length >= 1 &&
+    req.assetCardIds.length <= 50 &&
     req.assetCardIds.every((id) => typeof id === 'string' && id.length > 0) &&
     (req.format === 'readme' || req.format === 'resume')
   );

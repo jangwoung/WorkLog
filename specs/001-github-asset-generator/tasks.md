@@ -221,13 +221,13 @@
 
 ### Phase 4 — Backend Services
 
-- [ ] **T038** Implement export service  
+- [X] **T038** Implement export service  
   **Description**: Add `src/services/export/export.service.ts`. `export(assetCardIds, format)`: load AssetCards (must be approved/edited), validate ownership. Format as README (markdown) or resume (plain bullets). Return `{ format, content, exportedAssetCardIds, exportedAt }`.  
   **Acceptance Criteria**: README and resume formats match contracts; only allowed AssetCards exported; timestamps updated.
 
 ### Phase 4 — API Routes
 
-- [ ] **T039** Implement `POST /api/export`  
+- [X] **T039** Implement `POST /api/export`  
   **Description**: Add `app/api/export/route.ts`. Validate body (`assetCardIds`, `format`). Call export service. Return JSON with `content` and metadata. **Handle export template render errors**: on template failure, return 500, log error (via T021/logger); do not expose raw error to client.  
   **Acceptance Criteria**: Export payload validated; response matches contracts; 400/403/404 for invalid or unauthorized; 500 + logging when template render fails.
 
