@@ -131,39 +131,39 @@
 
 ### Phase 2 — Utils
 
-- [ ] **T023** Implement cost-aware diff processor  
+- [X] **T023** Implement cost-aware diff processor  
   **Description**: Add `src/utils/diff-processor.ts`. Truncate diff to first N lines (e.g. 5000); produce `diffStats` (filesChanged, additions, deletions). Optionally summarize remainder.  
   **Acceptance Criteria**: Large diffs truncated; stats correct; token-friendly output for LLM.
 
-- [ ] **T024** Implement idempotency helper for PR processing  
+- [X] **T024** Implement idempotency helper for PR processing  
   **Description**: Add `src/utils/idempotency.ts`. Check `pr-events` by `repositoryId` + `prNumber` + `eventType` (and/or `githubEventId`) before creating AssetCard; ensure one AssetCard per PR event.  
   **Acceptance Criteria**: Duplicate events do not create duplicate AssetCards; retries are safe.
 
 ### Phase 2 — Workers / Async Jobs
 
-- [ ] **T025** Implement PR event processor worker  
+- [X] **T025** Implement PR event processor worker  
   **Description**: Add `workers/pr-event-processor/`. HTTP handler invoked by Cloud Tasks. Payload: `prEventId` (or equivalent). Load PR event. **Before processing**: verify repository still connected and user has access (query `repositories`); if disconnected or inaccessible, mark PR event `processingStatus: "failed"`, skip fetch, do not enqueue asset-generator. Otherwise: fetch PR + diff via GitHub client, run diff processor, store enriched PR event, enqueue **asset-generator** task with `prEventId`.  
   **Acceptance Criteria**: Worker runs from Cloud Task; skips processing when repo disconnected/inaccessible; otherwise fetches PR/diff, enqueues asset-generator, updates PR event status.
 
-- [ ] **T026** Implement asset-generator worker (LLM pipeline)  
+- [X] **T026** Implement asset-generator worker (LLM pipeline)  
   **Description**: Add `workers/asset-generator/`. HTTP handler invoked by Cloud Tasks. Load PR event, call Extract → Synthesize (see T027), validate with AssetCard schema. If valid: create `asset-cards` doc (`status: "inbox"`), update PR event `assetCardId` and `processingStatus: "completed"`. If invalid: retry up to 2 times per research; then create AssetCard with `status: "flagged"`, store `validationErrors` (and partial LLM output if useful), link to PR event (**flagged-for-review** flow). Idempotent per T024.  
   **Acceptance Criteria**: Valid → AssetCard `inbox`; invalid after retries → AssetCard `flagged` with validation errors; no duplicate AssetCards.
 
 ### Phase 2 — LLM Integration
 
-- [ ] **T027** Implement Extract → Synthesize LLM pipeline with fixed schema  
+- [X] **T027** Implement Extract → Synthesize LLM pipeline with fixed schema  
   **Description**: In `workers/asset-generator` or shared `src/services/asset-card/`, implement two-step pipeline: (1) **Extract**: from PR title, description, diff (and diffStats), extract structured facts. (2) **Synthesize**: map to AssetCard fields (title, description, impact, technologies, contributions, metrics). Use Vertex AI Gemini; enforce output via function-calling or strict JSON schema. No scoring/grading; deterministic, schema-validated only.  
   **Acceptance Criteria**: Pipeline returns object conforming to AssetCard schema; all outputs validated; no extra fields.
 
 ### Phase 2 — AssetCard Orchestration
 
-- [ ] **T028** Implement AssetCard generation orchestration service  
+- [X] **T028** Implement AssetCard generation orchestration service  
   **Description**: Add `src/services/asset-card/asset-card.service.ts` (or extend). `generateFromPrEvent(prEventId)`: load PR event, run diff processor, call LLM pipeline, validate. If valid: create AssetCard `status: "inbox"`. If invalid after retries: create AssetCard `status: "flagged"` with `validationErrors`. Update PR event. Used by asset-generator worker.  
   **Acceptance Criteria**: Service creates AssetCard (inbox or flagged) and links to PR event; respects idempotency.
 
 ### Phase 2 — Webhook / API
 
-- [ ] **T029** Ensure webhook enqueues PR processor task (not asset-generator directly)  
+- [X] **T029** Ensure webhook enqueues PR processor task (not asset-generator directly)  
   **Description**: Update `app/api/webhooks/github/route.ts` so it enqueues the **pr-event-processor** task (which then enqueues asset-generator). Payload must include `githubEventId` / delivery id for idempotency.  
   **Acceptance Criteria**: Webhook → pr-event-processor task only; delivery ID passed; 200 returned immediately.
 

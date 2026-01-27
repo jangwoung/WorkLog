@@ -28,6 +28,10 @@ yarn-error.log*
 .env*.local
 .env
 
+# Google Cloud credentials (never commit)
+service-account-key.json
+*-credentials*.json
+
 # vercel
 .vercel
 

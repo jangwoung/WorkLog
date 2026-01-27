@@ -94,12 +94,17 @@ export async function POST(request: NextRequest) {
       githubEventId: deliveryId,
     });
 
-    // Enqueue Cloud Task for processing (use deliveryId for idempotency)
+    // Enqueue PR event processor task (which will then enqueue asset-generator)
+    // Use deliveryId for idempotency
     try {
+      const prProcessorUrl =
+        process.env.PR_EVENT_PROCESSOR_WORKER_URL ||
+        `${process.env.NEXTAUTH_URL}/api/tasks/pr-event-processor`;
+
       await enqueueTask({
         queueName: process.env.CLOUD_TASKS_QUEUE_NAME || 'pr-event-processing',
         location: process.env.CLOUD_TASKS_LOCATION || 'us-central1',
-        taskName: `pr-event-${deliveryId}`, // Idempotency key
+        taskName: `pr-event-processor-${deliveryId}`, // Idempotency key
         payload: {
           prEventId: prEvent.prEventId,
           userId: repo.userId,
@@ -107,12 +112,12 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      logger.info('PR event enqueued for processing', {
+      logger.info('PR event processor task enqueued', {
         prEventId: prEvent.prEventId,
         deliveryId,
       });
     } catch (error) {
-      logger.error('Failed to enqueue task', error, {
+      logger.error('Failed to enqueue PR event processor task', error, {
         prEventId: prEvent.prEventId,
         deliveryId,
       });

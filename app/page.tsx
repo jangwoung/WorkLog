@@ -1,8 +1,14 @@
-export default function Home() {
-  return (
-    <main>
-      <h1>WorkLog - GitHub Career Asset Generator</h1>
-      <p>Implementation in progress...</p>
-    </main>
-  )
+import { redirect } from 'next/navigation';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from './api/auth/[...nextauth]/route';
+
+export default async function Home() {
+  const session = await getServerSession(authOptions);
+
+  // Redirect to login if not authenticated, otherwise to inbox
+  if (!session) {
+    redirect('/login');
+  } else {
+    redirect('/inbox');
+  }
 }
