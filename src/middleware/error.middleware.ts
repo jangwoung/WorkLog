@@ -53,12 +53,14 @@ export function handleError(error: unknown): NextResponse {
     );
   }
 
-  // Handle unknown errors
+  // Handle unknown errors (include message when available for debugging)
+  const message =
+    error instanceof Error ? error.message : 'An unexpected error occurred';
   return NextResponse.json(
     {
       error: {
         code: 'INTERNAL_SERVER_ERROR',
-        message: 'An unexpected error occurred',
+        message: message || 'An unexpected error occurred',
       },
     },
     { status: 500 }

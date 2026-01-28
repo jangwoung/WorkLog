@@ -1,5 +1,6 @@
 import { getUsersCollection } from '@/src/infrastructure/firestore/collections';
 import type { User } from '@/src/models/user.model';
+import { Timestamp } from '@google-cloud/firestore';
 import { logger } from '@/src/utils/logger';
 
 /**
@@ -61,7 +62,7 @@ export async function updateUserConnectedRepos(
     const usersCollection = getUsersCollection();
     await usersCollection.doc(userId).update({
       connectedRepositoryIds: repositoryIds,
-      updatedAt: new Date(),
+      updatedAt: Timestamp.now(),
     });
     logger.info('Updated user connected repositories', { userId, count: repositoryIds.length });
   } catch (error) {

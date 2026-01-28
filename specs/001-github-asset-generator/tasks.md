@@ -241,75 +241,75 @@
 
 ### Phase 5 — Layout & Common Components
 
-- [ ] **T040** [P] Add root layout and global styles  
+- [X] **T040** [P] Add root layout and global styles  
   **Description**: Implement `app/layout.tsx` and `app/styles/globals.css`. Root layout wraps app; redirect unauthenticated to login.  
   **Acceptance Criteria**: Layout renders; globals applied; auth redirect works.
 
-- [ ] **T041** [P] Add Header component  
+- [X] **T041** [P] Add Header component  
   **Description**: Create `app/components/layout/Header.tsx`. Links to inbox, library, repositories, export; sign-out.  
   **Acceptance Criteria**: Navigation works; sign-out clears session.
 
-- [ ] **T042** [P] Add common components  
+- [X] **T042** [P] Add common components  
   **Description**: Create `app/components/common/Button.tsx`, `Input.tsx`, `Modal.tsx` (minimal, reusable).  
   **Acceptance Criteria**: Components render; usable in forms and modals.
 
 ### Phase 5 — Auth UI
 
-- [ ] **T043** Implement login page  
+- [X] **T043** Implement login page  
   **Description**: Add `app/(auth)/login/page.tsx`. "Connect GitHub" triggers NextAuth sign-in.  
   **Acceptance Criteria**: Click connects to GitHub OAuth; callback returns to app.
 
-- [ ] **T044** Implement OAuth callback page  
+- [X] **T044** Implement OAuth callback page  
   **Description**: Add `app/(auth)/callback/page.tsx` or rely on NextAuth callback. Redirect to dashboard (e.g. inbox) after success.  
   **Acceptance Criteria**: Post-login redirect to inbox or dashboard.
 
 ### Phase 5 — Repositories UI
 
-- [ ] **T045** Implement repositories page  
+- [X] **T045** Implement repositories page  
   **Description**: Add `app/(dashboard)/repositories/page.tsx`. List connected repos via `GET /api/repositories`; connect (modal or form) via `POST /api/repositories/connect`; disconnect via `DELETE`. Use `useRepositories` hook.  
   **Acceptance Criteria**: List, connect, disconnect work; UI reflects state.
 
-- [ ] **T046** [P] Add RepositoryList and RepositoryCard components  
+- [X] **T046** [P] Add RepositoryList and RepositoryCard components  
   **Description**: Create `app/components/features/Repository/RepositoryList.tsx`, `RepositoryCard.tsx`.  
   **Acceptance Criteria**: List and card used by repositories page; display owner, name, status.
 
 ### Phase 5 — Inbox & Library UI
 
-- [ ] **T047** Implement inbox page  
+- [X] **T047** Implement inbox page  
   **Description**: Add `app/(dashboard)/inbox/page.tsx`. Fetch `GET /api/assets/inbox`; show AssetCards (inbox + flagged) in inbox-style list (most recent first). Visually distinguish `flagged` items (e.g. badge, validationErrors). Use `useAssetCards` hook.  
   **Acceptance Criteria**: Inbox lists pending AssetCards (inbox + flagged); flagged clearly marked; empty state when none.
 
-- [ ] **T048** Implement library page  
+- [X] **T048** Implement library page  
   **Description**: Add `app/(dashboard)/library/page.tsx`. Fetch `GET /api/assets/library`; show approved/edited AssetCards.  
   **Acceptance Criteria**: Library lists approved/edited assets; supports export selection.
 
-- [ ] **T049** Add AssetCard components  
+- [X] **T049** Add AssetCard components  
   **Description**: Create `AssetCardItem.tsx`, `AssetCardDetail.tsx`, `AssetCardEditor.tsx` in `app/components/features/AssetCard/`. Item for list; Detail for view; Editor for lightweight edit.  
   **Acceptance Criteria**: Inbox uses Item; Detail shows full card; Editor allows field edits and save.
 
-- [ ] **T050** Wire approve and edit actions in inbox (including flagged-for-review)  
+- [X] **T050** Wire approve and edit actions in inbox (including flagged-for-review)  
   **Description**: From inbox, approve (no edit) or open editor and save. Call `POST /api/assets/[id]/approve` or `.../edit`. Support **flagged** items: user can edit to fix validation issues then approve, or reject. Update local state or refetch.  
   **Acceptance Criteria**: Approve and edit work for inbox and flagged; flagged → edit → approve flow works; AssetCard moves to library; UI updates.
 
 ### Phase 5 — Export UI
 
-- [ ] **T051** Implement export page and ExportDialog  
+- [X] **T051** Implement export page and ExportDialog  
   **Description**: Add `app/(dashboard)/export/page.tsx` and `app/components/features/Export/ExportDialog.tsx`. Select AssetCards from library; choose README or resume; call `POST /api/export`; show copy/download.  
   **Acceptance Criteria**: User can select assets, pick format, copy or download; content matches format.
 
 ### Phase 5 — Hooks & Context
 
-- [ ] **T052** [P] Add useAuth hook and AuthContext  
+- [X] **T052** [P] Add useAuth hook and AuthContext  
   **Description**: Create `app/hooks/useAuth.ts` and `app/context/AuthContext.tsx`. Expose session, loading, sign-out.  
   **Acceptance Criteria**: Auth state available across app; hooks used in layout and pages.
 
-- [ ] **T053** [P] Add useRepositories, useAssetCards, useExport hooks  
+- [X] **T053** [P] Add useRepositories, useAssetCards, useExport hooks  
   **Description**: Create `app/hooks/useRepositories.ts`, `useAssetCards.ts`, `useExport.ts`. Wrap `GET/POST/DELETE` repos, `GET` inbox/library, `POST` export.  
   **Acceptance Criteria**: Hooks encapsulate API calls; used by repositories, inbox, library, export pages.
 
 ### Phase 5 — Routing
 
-- [ ] **T054** Configure dashboard routing and default redirect  
+- [X] **T054** Configure dashboard routing and default redirect  
   **Description**: Ensure `app/(dashboard)/*` routes exist; root or `/` redirects to inbox (or login if unauthenticated).  
   **Acceptance Criteria**: `/` → inbox or login; dashboard routes accessible when authenticated.
 

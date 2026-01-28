@@ -64,28 +64,47 @@ export async function connectRepository(
       throw Errors.forbidden('Repository not found or user does not have access');
     }
 
-    // Create webhook
-    let webhookId: number;
+    // Create webhook (skip on 403/422 or unreachable URL so dev/localhost or restricted orgs can still connect)
+    let webhookId: number | undefined;
+    let webhookSecretToStore: string | undefined;
     try {
       webhookId = await githubClient.createWebhook(owner, name, webhookUrl, webhookSecret);
+      webhookSecretToStore = webhookSecret || undefined;
     } catch (error) {
-      logger.error('Failed to create webhook', error, { userId, owner, name });
-      throw Errors.internal('Failed to create webhook', error);
+      const status = (error as { status?: number })?.status;
+      const msg = (error as Error)?.message ?? '';
+      const isUnreachableUrl =
+        status === 422 || String(msg).includes("isn't reachable over the public Internet") || String(msg).includes('localhost');
+      const isForbidden =
+        status === 403 || String(msg).includes('Resource not accessible by integration');
+      const skipWebhook = isUnreachableUrl || isForbidden;
+      if (skipWebhook) {
+        logger.warn('Webhook creation skipped (unreachable URL or insufficient permissions)', {
+          userId,
+          owner,
+          name,
+          reason: isUnreachableUrl ? 'unreachable_url' : 'forbidden',
+          message: msg,
+        });
+      } else {
+        logger.error('Failed to create webhook', error, { userId, owner, name });
+        throw Errors.internal('Failed to create webhook', error);
+      }
     }
 
-    // Store repository in Firestore
+    // Store repository in Firestore (omit undefined to satisfy Firestore)
     const now = Timestamp.now();
-    const repositoryData: Omit<Repository, 'repositoryId'> = {
+    const repositoryData = {
       userId,
       githubRepoId: repo.id,
       owner: repo.owner.login,
       name: repo.name,
       fullName: repo.full_name,
       isPrivate: repo.private,
-      connectionStatus: 'connected',
-      webhookId,
-      webhookSecret, // TODO: Encrypt before storage
+      connectionStatus: 'connected' as ConnectionStatus,
       connectedAt: now,
+      ...(webhookId != null && { webhookId }),
+      ...(webhookSecretToStore != null && webhookSecretToStore !== '' && { webhookSecret: webhookSecretToStore }),
     };
 
     let repositoryId: string;
@@ -108,9 +127,10 @@ export async function connectRepository(
     }
 
     // Update user's connected repository IDs (user already loaded above)
-    const updatedRepoIds = user.connectedRepositoryIds.includes(repositoryId)
-      ? user.connectedRepositoryIds
-      : [...user.connectedRepositoryIds, repositoryId];
+    const currentIds = user.connectedRepositoryIds ?? [];
+    const updatedRepoIds = currentIds.includes(repositoryId)
+      ? currentIds
+      : [...currentIds, repositoryId];
     await updateUserConnectedRepos(userId, updatedRepoIds);
 
     logger.info('Repository connected', { userId, repositoryId, fullName: `${owner}/${name}` });

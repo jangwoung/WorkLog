@@ -11,7 +11,8 @@ export const authOptions: NextAuthOptions = {
       clientSecret: process.env.GITHUB_CLIENT_SECRET!,
       authorization: {
         params: {
-          scope: 'read:user user:email repo',
+          // admin:repo_hook required to create repository webhooks
+          scope: 'read:user user:email repo admin:repo_hook',
         },
       },
     }),
@@ -41,18 +42,22 @@ export const authOptions: NextAuthOptions = {
         .get();
 
       const now = Timestamp.now();
-      const userData: Omit<User, 'userId'> = {
+      // Firestore does not accept undefined; omit optional fields when missing
+      const base = {
         githubUserId,
         githubUsername,
-        githubEmail,
         oauthToken: account.access_token || '', // TODO: Encrypt before storage
-        oauthRefreshToken: account.refresh_token,
-        oauthTokenExpiresAt: account.expires_at
-          ? Timestamp.fromMillis(account.expires_at * 1000)
-          : undefined,
-        connectedRepositoryIds: [],
+        connectedRepositoryIds: [] as string[],
         createdAt: now,
         updatedAt: now,
+      };
+      const userData = {
+        ...base,
+        ...(githubEmail != null && githubEmail !== '' && { githubEmail }),
+        ...(account.refresh_token != null && { oauthRefreshToken: account.refresh_token }),
+        ...(account.expires_at != null && {
+          oauthTokenExpiresAt: Timestamp.fromMillis(account.expires_at * 1000),
+        }),
       };
 
       if (!existingUserQuery.empty) {

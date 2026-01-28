@@ -89,14 +89,18 @@ export async function POST(request: NextRequest) {
     });
 
     // Format response (exclude sensitive fields)
-    const response = {
+    const response: Record<string, unknown> = {
       repositoryId: repository.repositoryId,
       githubRepoId: repository.githubRepoId,
       fullName: repository.fullName,
       connectionStatus: repository.connectionStatus,
-      webhookId: repository.webhookId,
+      webhookId: repository.webhookId ?? null,
       connectedAt: repository.connectedAt.toDate().toISOString(),
     };
+    if (repository.webhookId == null) {
+      response.warning =
+        'Webhook could not be installed (e.g. org restriction or insufficient scope). PR events will not be received automatically.';
+    }
 
     return NextResponse.json(response, { status: 201 });
   } catch (error) {

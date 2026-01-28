@@ -1,0 +1,23 @@
+# .gcloudignore - Cloud Run へソースアップロード時に除外するファイル
+# ローカルで docker build する場合は .dockerignore を別途用意するとよい
+
+.git
+.gitignore
+.cursor
+.specify
+.env*.local
+.env
+*.md
+!README.md
+node_modules
+.next
+out
+coverage
+*.log
+.DS_Store
+service-account-key.json
+*-credentials*.json
+.pnp
+.pnp.js
+*.tsbuildinfo
+next-env.d.ts
