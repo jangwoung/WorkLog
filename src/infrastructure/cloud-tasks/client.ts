@@ -17,6 +17,8 @@ export function getCloudTasksClient(): CloudTasksClient {
 export interface EnqueueTaskOptions {
   queueName: string;
   location: string;
+  /** Target URL for the HTTP task. If omitted, uses CLOUD_TASKS_HANDLER_URL (or default). */
+  url?: string;
   taskName?: string; // For idempotency
   payload: unknown;
   scheduleTime?: Date;
@@ -43,11 +45,16 @@ export async function enqueueTask(options: EnqueueTaskOptions): Promise<string> 
     ? { seconds: Math.floor(options.scheduleTime.getTime() / 1000), nanos: 0 }
     : undefined;
 
+  const targetUrl =
+    options.url ||
+    process.env.CLOUD_TASKS_HANDLER_URL ||
+    'http://localhost:3000/api/tasks/pr-event-processor';
+
   const task = {
     name: options.taskName ? client.taskPath(project, location, queue, options.taskName) : undefined,
     httpRequest: {
       httpMethod: 'POST' as const,
-      url: process.env.CLOUD_TASKS_HANDLER_URL || 'http://localhost:3000/api/tasks/process',
+      url: targetUrl,
       headers: {
         'Content-Type': 'application/json',
       },

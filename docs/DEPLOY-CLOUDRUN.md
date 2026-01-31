@@ -192,10 +192,11 @@ gcloud run deploy worklog --image $IMAGE --region $REGION --allow-unauthenticate
 
 環境変数は上と同様に `--set-env-vars` またはコンソールで設定します。
 
-## 6. Webhook について
+## 6. Webhook と Cloud Tasks について
 
 - デプロイ後、`GITHUB_WEBHOOK_URL` を本番 URL にすることで、リポジトリ接続時に Webhook が自動作成されます。
 - GitHub の Webhook 設定で「Payload URL」に同じ URL を手動登録する場合は、Content type: `application/json`、イベント: **Pull requests** のみにしてください。
+- **Webhook → Cloud Tasks → AssetCard 生成**の詳細な設定（タスクの URL、動作確認手順など）は [WEBHOOK-CLOUD-TASKS-SETUP.md](./WEBHOOK-CLOUD-TASKS-SETUP.md) を参照してください。
 
 ## 7. 認証を必須にしたい場合
 
