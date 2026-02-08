@@ -53,6 +53,21 @@ export async function generateAssetCardFromPrEvent(
     } as PREvent;
 
     // Verify PR event is in correct state
+    // When 'failed': throw noRetry so route returns 200 - stops Cloud Tasks from retrying indefinitely
+    // When 'completed': return existing AssetCard if available (idempotency handles most cases)
+    if (prEvent.processingStatus === 'failed') {
+      throw Errors.noRetry(
+        `PR event previously failed: ${prEvent.errorMessage || prEvent.processingStatus}`
+      );
+    }
+    if (prEvent.processingStatus === 'completed' && prEvent.assetCardId) {
+      const assetCardsCollection = getAssetCardsCollection();
+      const existingCard = await assetCardsCollection.doc(prEvent.assetCardId).get();
+      if (existingCard.exists) {
+        const data = existingCard.data() as Omit<AssetCard, 'assetCardId'>;
+        return { assetCardId: existingCard.id, ...data } as AssetCard;
+      }
+    }
     if (prEvent.processingStatus !== 'pending' && prEvent.processingStatus !== 'processing') {
       throw Errors.badRequest(
         `PR event is not in processable state: ${prEvent.processingStatus}`
@@ -91,6 +106,7 @@ export async function generateAssetCardFromPrEvent(
       validationErrors = llmResult.errors;
     }
 
+    // Firestore は undefined を許容しないため、validationErrors は未設定時はオブジェクトに含めない
     const assetCardData: Omit<AssetCard, 'assetCardId'> = {
       userId: prEvent.userId,
       prEventId: prEvent.prEventId,
@@ -102,7 +118,7 @@ export async function generateAssetCardFromPrEvent(
       technologies: llmResult.assetCard.technologies,
       contributions: llmResult.assetCard.contributions,
       metrics: llmResult.assetCard.metrics,
-      validationErrors,
+      ...(validationErrors != null && { validationErrors }),
       schemaVersion: ASSET_CARD_SCHEMA_VERSION,
       generatedAt: now,
     };

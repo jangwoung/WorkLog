@@ -1,6 +1,7 @@
 'use client';
 
 import type { AssetCardItem as AssetCardItemType } from '@/app/hooks/useAssetCards';
+import { useLanguage } from '@/app/context/LanguageContext';
 
 interface AssetCardItemProps {
   card: AssetCardItemType;
@@ -11,6 +12,7 @@ interface AssetCardItemProps {
 }
 
 export function AssetCardItem({ card, onApprove, onEdit, onReject, loading }: AssetCardItemProps) {
+  const { t } = useLanguage();
   const isFlagged = card.status === 'flagged';
 
   return (
@@ -36,7 +38,7 @@ export function AssetCardItem({ card, onApprove, onEdit, onReject, loading }: As
                   fontWeight: 500,
                 }}
               >
-                Flagged
+                {t('inbox.flagged')}
               </span>
             )}
           </div>
@@ -84,7 +86,7 @@ export function AssetCardItem({ card, onApprove, onEdit, onReject, loading }: As
                 cursor: loading ? 'not-allowed' : 'pointer',
               }}
             >
-              Approve
+              {t('inbox.approve')}
             </button>
           )}
           {onEdit && (
@@ -102,7 +104,7 @@ export function AssetCardItem({ card, onApprove, onEdit, onReject, loading }: As
                 cursor: loading ? 'not-allowed' : 'pointer',
               }}
             >
-              Edit
+              {t('inbox.edit')}
             </button>
           )}
           {onReject && (
@@ -120,7 +122,7 @@ export function AssetCardItem({ card, onApprove, onEdit, onReject, loading }: As
                 cursor: loading ? 'not-allowed' : 'pointer',
               }}
             >
-              Reject
+              {t('inbox.reject')}
             </button>
           )}
         </div>

@@ -6,15 +6,14 @@ import { logDecision } from '@/src/services/decision-log/decision-log.service';
 import { serializeAssetCardForApi } from '@/src/utils/asset-card-serializer';
 import { getAssetCardsCollection } from '@/src/infrastructure/firestore/collections';
 
-interface RouteParams {
-  params: { assetCardId: string };
-}
-
 /**
  * GET /api/assets/:assetCardId
  * Return a single AssetCard if owned by the current user.
  */
-export async function GET(request: NextRequest, { params }: RouteParams) {
+export async function GET(
+  request: NextRequest,
+  context: { params: Promise<{ assetCardId: string }> }
+) {
   try {
     const authResult = await requireAuth(request);
     if (authResult instanceof NextResponse) {
@@ -22,7 +21,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     }
 
     const { userId } = authResult;
-    const { assetCardId } = params;
+    const { assetCardId } = await context.params;
 
     const card = await getAssetCardById(assetCardId, userId);
     if (!card) {
@@ -50,7 +49,10 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
  * DELETE /api/assets/:assetCardId
  * Reject/remove AssetCard (inbox or flagged only); log decision.
  */
-export async function DELETE(request: NextRequest, { params }: RouteParams) {
+export async function DELETE(
+  request: NextRequest,
+  context: { params: Promise<{ assetCardId: string }> }
+) {
   try {
     const authResult = await requireAuth(request);
     if (authResult instanceof NextResponse) {
@@ -58,7 +60,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     }
 
     const { userId } = authResult;
-    const { assetCardId } = params;
+    const { assetCardId } = await context.params;
 
     await rejectAssetCard(assetCardId, userId);
     await logDecision({ userId, assetCardId, actionType: 'reject' });

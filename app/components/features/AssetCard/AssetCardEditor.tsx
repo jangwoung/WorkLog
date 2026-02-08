@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import type { AssetCardItem } from '@/app/hooks/useAssetCards';
 import { Button } from '@/app/components/common/Button';
+import { useLanguage } from '@/app/context/LanguageContext';
 
 interface AssetCardEditorProps {
   card: AssetCardItem;
@@ -11,6 +12,7 @@ interface AssetCardEditorProps {
 }
 
 export function AssetCardEditor({ card, onSave, onCancel }: AssetCardEditorProps) {
+  const { t } = useLanguage();
   const [title, setTitle] = useState(card.title);
   const [description, setDescription] = useState(card.description);
   const [impact, setImpact] = useState(card.impact || '');
@@ -61,7 +63,7 @@ export function AssetCardEditor({ card, onSave, onCancel }: AssetCardEditorProps
       }}
     >
       <div style={{ marginBottom: '1rem' }}>
-        <label style={{ display: 'block', marginBottom: '0.25rem', fontSize: '0.8125rem' }}>Title</label>
+        <label style={{ display: 'block', marginBottom: '0.25rem', fontSize: '0.8125rem' }}>{t('editor.title')}</label>
         <input
           value={title}
           onChange={(e) => setTitle(e.target.value)}
@@ -76,7 +78,7 @@ export function AssetCardEditor({ card, onSave, onCancel }: AssetCardEditorProps
         />
       </div>
       <div style={{ marginBottom: '1rem' }}>
-        <label style={{ display: 'block', marginBottom: '0.25rem', fontSize: '0.8125rem' }}>Description</label>
+        <label style={{ display: 'block', marginBottom: '0.25rem', fontSize: '0.8125rem' }}>{t('editor.description')}</label>
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
@@ -92,7 +94,7 @@ export function AssetCardEditor({ card, onSave, onCancel }: AssetCardEditorProps
         />
       </div>
       <div style={{ marginBottom: '1rem' }}>
-        <label style={{ display: 'block', marginBottom: '0.25rem', fontSize: '0.8125rem' }}>Impact</label>
+        <label style={{ display: 'block', marginBottom: '0.25rem', fontSize: '0.8125rem' }}>{t('editor.impact')}</label>
         <input
           value={impact}
           onChange={(e) => setImpact(e.target.value)}
@@ -108,12 +110,12 @@ export function AssetCardEditor({ card, onSave, onCancel }: AssetCardEditorProps
       </div>
       <div style={{ marginBottom: '1rem' }}>
         <label style={{ display: 'block', marginBottom: '0.25rem', fontSize: '0.8125rem' }}>
-          Technologies (comma-separated)
+          {t('editor.technologies')}
         </label>
         <input
           value={technologies}
           onChange={(e) => setTechnologies(e.target.value)}
-          placeholder="e.g. React, TypeScript"
+          placeholder={t('editor.technologiesPlaceholder')}
           style={{
             width: '100%',
             padding: '0.5rem',
@@ -125,7 +127,7 @@ export function AssetCardEditor({ card, onSave, onCancel }: AssetCardEditorProps
       </div>
       <div style={{ marginBottom: '1rem' }}>
         <label style={{ display: 'block', marginBottom: '0.25rem', fontSize: '0.8125rem' }}>
-          Contributions (one per line)
+          {t('editor.contributions')}
         </label>
         <textarea
           value={contributions}
@@ -141,7 +143,7 @@ export function AssetCardEditor({ card, onSave, onCancel }: AssetCardEditorProps
         />
       </div>
       <div style={{ marginBottom: '1rem' }}>
-        <label style={{ display: 'block', marginBottom: '0.25rem', fontSize: '0.8125rem' }}>Metrics</label>
+        <label style={{ display: 'block', marginBottom: '0.25rem', fontSize: '0.8125rem' }}>{t('editor.metrics')}</label>
         <input
           value={metrics}
           onChange={(e) => setMetrics(e.target.value)}
@@ -157,10 +159,10 @@ export function AssetCardEditor({ card, onSave, onCancel }: AssetCardEditorProps
       </div>
       <div style={{ display: 'flex', gap: '0.5rem' }}>
         <Button variant="secondary" onClick={onCancel} disabled={saving}>
-          Cancel
+          {t('editor.cancel')}
         </Button>
         <Button onClick={handleSave} disabled={saving}>
-          {saving ? 'Saving…' : 'Save'}
+          {saving ? t('editor.saving') : t('editor.save')}
         </Button>
       </div>
     </div>

@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth } from '@/src/middleware/auth.middleware';
 import { handleError } from '@/src/middleware/error.middleware';
+import { validateRepositoryConnectBody } from '@/src/middleware/validation.middleware';
 import { getUserRepositories, connectRepository } from '@/src/services/repository/repository.service';
 import { getUserById } from '@/src/services/auth/auth.service';
-import { validateRepositoryConnect } from '@/src/schemas/validation.schemas';
 import { logger } from '@/src/utils/logger';
 
 /**
@@ -53,12 +53,10 @@ export async function POST(request: NextRequest) {
     const { userId } = authResult;
 
     // Parse and validate request body
-    const body = await request.json();
-    if (!validateRepositoryConnect(body)) {
-      return NextResponse.json(
-        { error: { code: 'VALIDATION_ERROR', message: 'Invalid request body' } },
-        { status: 400 }
-      );
+    const body = await request.json().catch(() => ({}));
+    const validated = validateRepositoryConnectBody(body);
+    if (validated instanceof Response) {
+      return validated;
     }
 
     // Get user to retrieve OAuth token
@@ -81,8 +79,8 @@ export async function POST(request: NextRequest) {
     // Connect repository
     const repository = await connectRepository({
       userId,
-      owner: body.owner,
-      name: body.name,
+      owner: validated.owner,
+      name: validated.name,
       oauthToken: user.oauthToken, // TODO: Decrypt token
       webhookUrl,
       webhookSecret,

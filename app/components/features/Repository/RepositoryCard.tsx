@@ -2,6 +2,7 @@
 
 import type { RepositoryItem } from '@/app/hooks/useRepositories';
 import { Button } from '@/app/components/common/Button';
+import { useLanguage } from '@/app/context/LanguageContext';
 
 interface RepositoryCardProps {
   repo: RepositoryItem;
@@ -10,6 +11,7 @@ interface RepositoryCardProps {
 }
 
 export function RepositoryCard({ repo, onDisconnect, disconnecting }: RepositoryCardProps) {
+  const { t } = useLanguage();
   const canDisconnect = repo.connectionStatus === 'connected';
 
   return (
@@ -34,7 +36,7 @@ export function RepositoryCard({ repo, onDisconnect, disconnecting }: Repository
             marginTop: '0.25rem',
           }}
         >
-          {repo.connectionStatus}
+          {repo.connectionStatus === 'connected' ? t('repositories.connected') : repo.connectionStatus}
         </div>
       </div>
       {canDisconnect && (
@@ -43,7 +45,7 @@ export function RepositoryCard({ repo, onDisconnect, disconnecting }: Repository
           onClick={() => onDisconnect(repo.repositoryId)}
           disabled={disconnecting}
         >
-          {disconnecting ? 'Disconnecting…' : 'Disconnect'}
+          {disconnecting ? t('repositories.disconnecting') : t('repositories.disconnect')}
         </Button>
       )}
     </div>

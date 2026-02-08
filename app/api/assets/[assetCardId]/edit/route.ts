@@ -1,20 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth } from '@/src/middleware/auth.middleware';
 import { handleError } from '@/src/middleware/error.middleware';
+import { validateAssetCardEditBody } from '@/src/middleware/validation.middleware';
 import { editAssetCard } from '@/src/services/asset-card/asset-card.service';
 import { logDecision } from '@/src/services/decision-log/decision-log.service';
-import { validateAssetCardEdit } from '@/src/schemas/validation.schemas';
 import { serializeAssetCardForApi } from '@/src/utils/asset-card-serializer';
-
-interface RouteParams {
-  params: { assetCardId: string };
-}
 
 /**
  * POST /api/assets/:assetCardId/edit
  * Apply partial edits to an AssetCard (inbox or flagged); log decision with editedFields.
  */
-export async function POST(request: NextRequest, { params }: RouteParams) {
+export async function POST(
+  request: NextRequest,
+  context: { params: Promise<{ assetCardId: string }> }
+) {
   try {
     const authResult = await requireAuth(request);
     if (authResult instanceof NextResponse) {
@@ -22,17 +21,15 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
 
     const { userId } = authResult;
-    const { assetCardId } = params;
+    const { assetCardId } = await context.params;
 
-    const body = await request.json();
-    if (!validateAssetCardEdit(body)) {
-      return NextResponse.json(
-        { error: { code: 'VALIDATION_ERROR', message: 'Invalid request body' } },
-        { status: 400 }
-      );
+    const body = await request.json().catch(() => ({}));
+    const validated = validateAssetCardEditBody(body);
+    if (validated instanceof Response) {
+      return validated;
     }
 
-    const card = await editAssetCard(assetCardId, userId, body);
+    const card = await editAssetCard(assetCardId, userId, validated);
 
     const editedFields =
       card.editHistory && card.editHistory.length > 0

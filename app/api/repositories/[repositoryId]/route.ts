@@ -5,19 +5,13 @@ import { disconnectRepository } from '@/src/services/repository/repository.servi
 import { getUserById } from '@/src/services/auth/auth.service';
 import { logger } from '@/src/utils/logger';
 
-interface RouteParams {
-  params: {
-    repositoryId: string;
-  };
-}
-
 /**
  * DELETE /api/repositories/[repositoryId]
  * Disconnect a repository and stop monitoring PR events
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: RouteParams
+  context: { params: Promise<{ repositoryId: string }> }
 ) {
   try {
     const authResult = await requireAuth(request);
@@ -26,7 +20,7 @@ export async function DELETE(
     }
 
     const { userId } = authResult;
-    const { repositoryId } = params;
+    const { repositoryId } = await context.params;
 
     // Get user to retrieve OAuth token
     const user = await getUserById(userId);

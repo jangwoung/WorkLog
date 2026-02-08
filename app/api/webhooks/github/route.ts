@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
 
       await enqueueTask({
         queueName: process.env.CLOUD_TASKS_QUEUE_NAME || 'pr-event-processing',
-        location: process.env.CLOUD_TASKS_LOCATION || 'us-central1',
+        location: process.env.CLOUD_TASKS_LOCATION || 'asia-northeast1',
         url: prProcessorUrl,
         taskName: `pr-event-processor-${deliveryId}`, // Idempotency key
         payload: {

@@ -1,8 +1,10 @@
 'use client';
 
 import { signIn } from 'next-auth/react';
+import { useLanguage } from '@/app/context/LanguageContext';
 
 export function SignIn() {
+  const { t } = useLanguage();
   const handleSignIn = () => {
     signIn('github', { callbackUrl: '/inbox' });
   };
@@ -27,7 +29,7 @@ export function SignIn() {
         e.currentTarget.style.backgroundColor = '#24292e';
       }}
     >
-      Sign in with GitHub
+      {t('auth.signIn')}
     </button>
   );
 }

@@ -1,12 +1,14 @@
 'use client';
 
 import type { AssetCardItem } from '@/app/hooks/useAssetCards';
+import { useLanguage } from '@/app/context/LanguageContext';
 
 interface AssetCardDetailProps {
   card: AssetCardItem;
 }
 
 export function AssetCardDetail({ card }: AssetCardDetailProps) {
+  const { t } = useLanguage();
   return (
     <div
       style={{
@@ -22,17 +24,17 @@ export function AssetCardDetail({ card }: AssetCardDetailProps) {
       </p>
       {card.impact && (
         <p style={{ margin: '0 0 0.5rem', fontSize: '0.8125rem' }}>
-          <strong>Impact:</strong> {card.impact}
+          <strong>{t('card.impact')}:</strong> {card.impact}
         </p>
       )}
       {card.technologies && card.technologies.length > 0 && (
         <p style={{ margin: '0 0 0.5rem', fontSize: '0.8125rem' }}>
-          <strong>Technologies:</strong> {card.technologies.join(', ')}
+          <strong>{t('card.technologies')}:</strong> {card.technologies.join(', ')}
         </p>
       )}
       {card.contributions && card.contributions.length > 0 && (
         <div style={{ marginTop: '0.75rem' }}>
-          <strong style={{ fontSize: '0.8125rem' }}>Contributions:</strong>
+          <strong style={{ fontSize: '0.8125rem' }}>{t('card.contributions')}:</strong>
           <ul style={{ margin: '0.25rem 0 0', paddingLeft: '1.25rem', fontSize: '0.8125rem' }}>
             {card.contributions.map((c, i) => (
               <li key={i}>{c}</li>
@@ -42,7 +44,7 @@ export function AssetCardDetail({ card }: AssetCardDetailProps) {
       )}
       {card.metrics && (
         <p style={{ margin: '0.75rem 0 0', fontSize: '0.8125rem' }}>
-          <strong>Metrics:</strong> {card.metrics}
+          <strong>{t('card.metrics')}:</strong> {card.metrics}
         </p>
       )}
     </div>

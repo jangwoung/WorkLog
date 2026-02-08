@@ -65,7 +65,7 @@ Provide a structured summary of these facts in JSON format:
   try {
     const response = await generateContent({
       prompt: extractPrompt,
-      model: process.env.VERTEX_AI_MODEL || 'gemini-1.5-pro',
+      model: process.env.VERTEX_AI_MODEL || 'gemini-2.5-flash',
       temperature: 0.3, // Lower temperature for more deterministic extraction
     });
 
@@ -119,7 +119,7 @@ Do not include any additional text or explanation, only the JSON object.`;
   try {
     const response = await generateContent({
       prompt: synthesizePrompt,
-      model: process.env.VERTEX_AI_MODEL || 'gemini-1.5-pro',
+      model: process.env.VERTEX_AI_MODEL || 'gemini-2.5-flash',
       temperature: 0.5, // Slightly higher for more natural synthesis
     });
 

@@ -5,15 +5,14 @@ import { approveAssetCard } from '@/src/services/asset-card/asset-card.service';
 import { logDecision } from '@/src/services/decision-log/decision-log.service';
 import { serializeAssetCardForApi } from '@/src/utils/asset-card-serializer';
 
-interface RouteParams {
-  params: { assetCardId: string };
-}
-
 /**
  * POST /api/assets/:assetCardId/approve
  * Approve an AssetCard (inbox or flagged → approved); log decision.
  */
-export async function POST(request: NextRequest, { params }: RouteParams) {
+export async function POST(
+  request: NextRequest,
+  context: { params: Promise<{ assetCardId: string }> }
+) {
   try {
     const authResult = await requireAuth(request);
     if (authResult instanceof NextResponse) {
@@ -21,7 +20,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
 
     const { userId } = authResult;
-    const { assetCardId } = params;
+    const { assetCardId } = await context.params;
 
     const card = await approveAssetCard(assetCardId, userId);
     await logDecision({ userId, assetCardId, actionType: 'approve' });

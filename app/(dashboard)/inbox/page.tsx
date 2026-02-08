@@ -6,6 +6,7 @@ import type { AssetCardItem } from '@/app/hooks/useAssetCards';
 import { AssetCardItem as AssetCardItemComponent } from '@/app/components/features/AssetCard/AssetCardItem';
 import { AssetCardEditor } from '@/app/components/features/AssetCard/AssetCardEditor';
 import { Modal } from '@/app/components/common/Modal';
+import { useLanguage } from '@/app/context/LanguageContext';
 
 export default function InboxPage() {
   const {
@@ -19,6 +20,7 @@ export default function InboxPage() {
     edit,
     reject,
   } = useAssetCards();
+  const { t } = useLanguage();
   const [actionLoading, setActionLoading] = useState(false);
   const [editingCard, setEditingCard] = useState<AssetCardItem | null>(null);
 
@@ -54,7 +56,7 @@ export default function InboxPage() {
   };
 
   const handleReject = async (id: string) => {
-    if (!confirm('Reject and remove this AssetCard?')) return;
+    if (!confirm(t('inbox.rejectConfirm'))) return;
     setActionLoading(true);
     setError(null);
     try {
@@ -69,9 +71,9 @@ export default function InboxPage() {
 
   return (
     <div>
-      <h1 style={{ marginBottom: '0.5rem', fontSize: '1.5rem' }}>Inbox</h1>
+      <h1 style={{ marginBottom: '0.5rem', fontSize: '1.5rem' }}>{t('inbox.title')}</h1>
       <p style={{ color: '#64748b', marginBottom: '1.5rem', fontSize: '0.875rem' }}>
-        Review and approve or edit AssetCards from your PRs. Flagged items need fixes before approval.
+        {t('inbox.description')}
       </p>
 
       {error && (
@@ -90,9 +92,9 @@ export default function InboxPage() {
       )}
 
       {loading && !inboxCards.length ? (
-        <p style={{ color: '#64748b' }}>Loading…</p>
+        <p style={{ color: '#64748b' }}>{t('inbox.loading')}</p>
       ) : !inboxCards.length ? (
-        <p style={{ color: '#64748b', fontSize: '0.875rem' }}>No pending AssetCards. New ones will appear here after PRs are processed.</p>
+        <p style={{ color: '#64748b', fontSize: '0.875rem' }}>{t('inbox.empty')}</p>
       ) : (
         <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           {inboxCards.map((card) => (
@@ -112,7 +114,7 @@ export default function InboxPage() {
       <Modal
         isOpen={!!editingCard}
         onClose={() => !actionLoading && setEditingCard(null)}
-        title="Edit AssetCard"
+        title={t('inbox.editModal')}
       >
         {editingCard && (
           <AssetCardEditor
