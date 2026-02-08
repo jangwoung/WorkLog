@@ -4,6 +4,7 @@ import { useState } from 'react';
 import type { AssetCardItem } from '@/app/hooks/useAssetCards';
 import { Button } from '@/app/components/common/Button';
 import { Modal } from '@/app/components/common/Modal';
+import { useLanguage } from '@/app/context/LanguageContext';
 
 interface ExportDialogProps {
   isOpen: boolean;
@@ -20,6 +21,7 @@ export function ExportDialog({
   onExport,
   lastResult,
 }: ExportDialogProps) {
+  const { t } = useLanguage();
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [format, setFormat] = useState<'readme' | 'resume'>('readme');
   const [loading, setLoading] = useState(false);
@@ -75,10 +77,10 @@ export function ExportDialog({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Export AssetCards">
+    <Modal isOpen={isOpen} onClose={onClose} title={t('export.dialogTitle')}>
       {libraryCards.length === 0 ? (
         <p style={{ color: '#64748b', fontSize: '0.875rem' }}>
-          No assets in library. Approve or edit items from the Inbox first.
+          {t('export.empty')}
         </p>
       ) : (
         <>
@@ -95,7 +97,7 @@ export function ExportDialog({
                 textDecoration: 'underline',
               }}
             >
-              {selectedIds.size === libraryCards.length ? 'Deselect all' : 'Select all'}
+              {selectedIds.size === libraryCards.length ? t('export.deselectAll') : t('export.selectAll')}
             </button>
           </div>
           <ul
@@ -125,7 +127,7 @@ export function ExportDialog({
             ))}
           </ul>
           <div style={{ marginBottom: '1rem' }}>
-            <label style={{ display: 'block', marginBottom: '0.25rem', fontSize: '0.8125rem' }}>Format</label>
+            <label style={{ display: 'block', marginBottom: '0.25rem', fontSize: '0.8125rem' }}>{t('export.format')}</label>
             <select
               value={format}
               onChange={(e) => setFormat(e.target.value as 'readme' | 'resume')}
@@ -137,8 +139,8 @@ export function ExportDialog({
                 fontSize: '0.875rem',
               }}
             >
-              <option value="readme">README (Markdown)</option>
-              <option value="resume">Resume (bullets)</option>
+              <option value="readme">{t('export.formatReadme')}</option>
+              <option value="resume">{t('export.formatResume')}</option>
             </select>
           </div>
           <div style={{ display: 'flex', gap: '0.5rem', marginBottom: displayContent ? '1rem' : 0 }}>
@@ -146,19 +148,19 @@ export function ExportDialog({
               onClick={handleExport}
               disabled={loading || selectedIds.size === 0}
             >
-              {loading ? 'Exporting…' : 'Export'}
+              {loading ? t('export.exporting') : t('export.export')}
             </Button>
           </div>
           {displayContent && (
             <div style={{ marginTop: '1rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                <span style={{ fontSize: '0.8125rem' }}>Output</span>
+                <span style={{ fontSize: '0.8125rem' }}>{t('export.output')}</span>
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                   <Button variant="secondary" onClick={handleCopy}>
-                    Copy
+                    {t('export.copy')}
                   </Button>
                   <Button variant="secondary" onClick={handleDownload}>
-                    Download
+                    {t('export.download')}
                   </Button>
                 </div>
               </div>

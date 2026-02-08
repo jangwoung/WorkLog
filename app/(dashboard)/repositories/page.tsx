@@ -6,8 +6,10 @@ import { RepositoryList } from '@/app/components/features/Repository/RepositoryL
 import { Button } from '@/app/components/common/Button';
 import { Input } from '@/app/components/common/Input';
 import { Modal } from '@/app/components/common/Modal';
+import { useLanguage } from '@/app/context/LanguageContext';
 
 export default function RepositoriesPage() {
+  const { t } = useLanguage();
   const {
     repositories,
     loading,
@@ -54,9 +56,9 @@ export default function RepositoriesPage() {
 
   return (
     <div>
-      <h1 style={{ marginBottom: '0.5rem', fontSize: '1.5rem' }}>Repositories</h1>
+      <h1 style={{ marginBottom: '0.5rem', fontSize: '1.5rem' }}>{t('repositories.title')}</h1>
       <p style={{ color: '#64748b', marginBottom: '1.5rem', fontSize: '0.875rem' }}>
-        Connect GitHub repositories to track PRs and generate AssetCards.
+        {t('repositories.description')}
       </p>
 
       {error && (
@@ -75,11 +77,11 @@ export default function RepositoriesPage() {
       )}
 
       <div style={{ marginBottom: '1.5rem' }}>
-        <Button onClick={() => setModalOpen(true)}>Connect repository</Button>
+        <Button onClick={() => setModalOpen(true)}>{t('repositories.connect')}</Button>
       </div>
 
       {loading && !repositories.length ? (
-        <p style={{ color: '#64748b' }}>Loading…</p>
+        <p style={{ color: '#64748b' }}>{t('inbox.loading')}</p>
       ) : (
         <RepositoryList
           repositories={repositories}
@@ -91,26 +93,26 @@ export default function RepositoriesPage() {
       <Modal
         isOpen={modalOpen}
         onClose={() => !connecting && setModalOpen(false)}
-        title="Connect repository"
+        title={t('repositories.connectModal')}
       >
         <Input
-          label="Owner (user or org)"
-          placeholder="e.g. octocat"
+          label={t('repositories.ownerLabel')}
+          placeholder={t('repositories.ownerPlaceholder')}
           value={owner}
           onChange={(e) => setOwner(e.target.value)}
         />
         <Input
-          label="Repository name"
-          placeholder="e.g. my-repo"
+          label={t('repositories.nameLabel')}
+          placeholder={t('repositories.namePlaceholder')}
           value={name}
           onChange={(e) => setName(e.target.value)}
         />
         <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', marginTop: '1rem' }}>
           <Button variant="secondary" onClick={() => setModalOpen(false)} disabled={connecting}>
-            Cancel
+            {t('repositories.cancel')}
           </Button>
           <Button onClick={handleConnect} disabled={connecting || !owner.trim() || !name.trim()}>
-            {connecting ? 'Connecting…' : 'Connect'}
+            {connecting ? t('repositories.connecting') : t('repositories.connectSubmit')}
           </Button>
         </div>
       </Modal>

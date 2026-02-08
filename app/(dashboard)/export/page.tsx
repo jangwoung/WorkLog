@@ -5,8 +5,10 @@ import { useAssetCards } from '@/app/hooks/useAssetCards';
 import { useExport } from '@/app/hooks/useExport';
 import { Button } from '@/app/components/common/Button';
 import { ExportDialog } from '@/app/components/features/Export/ExportDialog';
+import { useLanguage } from '@/app/context/LanguageContext';
 
 export default function ExportPage() {
+  const { t } = useLanguage();
   const { libraryCards, fetchLibrary } = useAssetCards();
   const { loading: exportLoading, error: exportError, lastResult, exportAssets } = useExport();
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -22,9 +24,9 @@ export default function ExportPage() {
 
   return (
     <div>
-      <h1 style={{ marginBottom: '0.5rem', fontSize: '1.5rem' }}>Export</h1>
+      <h1 style={{ marginBottom: '0.5rem', fontSize: '1.5rem' }}>{t('export.title')}</h1>
       <p style={{ color: '#64748b', marginBottom: '1.5rem', fontSize: '0.875rem' }}>
-        Select AssetCards from your library and export them as README (Markdown) or resume (plain bullets). Copy to clipboard or download.
+        {t('export.description')}
       </p>
 
       {exportError && (
@@ -43,7 +45,7 @@ export default function ExportPage() {
       )}
 
       <Button onClick={() => setDialogOpen(true)}>
-        Open export dialog
+        {t('export.openDialog')}
       </Button>
 
       <ExportDialog

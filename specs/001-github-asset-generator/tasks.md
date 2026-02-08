@@ -321,19 +321,19 @@
 
 ### Phase 6 — Testing
 
-- [ ] **T055** Run quickstart validation  
+- [X] **T055** Run quickstart validation  
   **Description**: Follow `quickstart.md` (GCP, Firestore, GitHub OAuth, env, Cloud Tasks). Run app and workers; verify auth, connect repo, webhook → AssetCard, inbox, export.  
   **Acceptance Criteria**: Quickstart steps succeed; end-to-end flow works.
 
 ### Phase 6 — Infrastructure
 
-- [ ] **T056** Harden Firestore rules and API auth  
+- [X] **T056** Harden Firestore rules and API auth  
   **Description**: Review `config/firestore.rules` (see T005); ensure all collections scoped by `userId`. Ensure all relevant API routes use auth middleware and validate ownership.  
   **Acceptance Criteria**: No cross-user data access; rules and routes audited.
 
 ### Phase 6 — Validation Middleware
 
-- [ ] **T057** Add validation middleware to API routes  
+- [X] **T057** Add validation middleware to API routes  
   **Description**: Add `src/middleware/validation.middleware.ts`. **Build on T015 schemas** (`src/schemas/validation.schemas.ts`); apply to repository connect, asset edit, export routes. Return 400 with clear messages for invalid input.  
   **Acceptance Criteria**: Invalid payloads rejected via middleware using T015 schemas; error format consistent.
 

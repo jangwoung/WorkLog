@@ -2,16 +2,17 @@
 
 import Link from 'next/link';
 import { useAuth } from '@/app/hooks/useAuth';
-
-const nav = [
-  { href: '/inbox', label: 'Inbox' },
-  { href: '/library', label: 'Library' },
-  { href: '/repositories', label: 'Repositories' },
-  { href: '/export', label: 'Export' },
+import { useLanguage } from '@/app/context/LanguageContext';
+const navKeys: { href: string; key: string }[] = [
+  { href: '/inbox', key: 'nav.inbox' },
+  { href: '/library', key: 'nav.library' },
+  { href: '/repositories', key: 'nav.repositories' },
+  { href: '/export', key: 'nav.export' },
 ];
 
 export function Header() {
   const { signOut } = useAuth();
+  const { locale, setLocale, t } = useLanguage();
 
   return (
     <header
@@ -25,18 +26,49 @@ export function Header() {
       }}
     >
       <Link href="/inbox" style={{ fontWeight: 600, fontSize: '1.125rem', color: '#0f172a' }}>
-        WorkLog
+        {t('app.title')}
       </Link>
       <nav style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
-        {nav.map(({ href, label }) => (
+        {navKeys.map(({ href, key }) => (
           <Link
             key={href}
             href={href}
             style={{ color: '#475569', fontSize: '0.875rem' }}
           >
-            {label}
+            {t(key)}
           </Link>
         ))}
+        <span style={{ display: 'flex', gap: '0.25rem', alignItems: 'center', fontSize: '0.875rem', color: '#64748b' }}>
+          <button
+            type="button"
+            onClick={() => setLocale('en')}
+            style={{
+              padding: '0.25rem 0.5rem',
+              background: locale === 'en' ? '#e2e8f0' : 'transparent',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontWeight: locale === 'en' ? 600 : 400,
+            }}
+          >
+            EN
+          </button>
+          <span aria-hidden>|</span>
+          <button
+            type="button"
+            onClick={() => setLocale('ja')}
+            style={{
+              padding: '0.25rem 0.5rem',
+              background: locale === 'ja' ? '#e2e8f0' : 'transparent',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontWeight: locale === 'ja' ? 600 : 400,
+            }}
+          >
+            日本語
+          </button>
+        </span>
         <button
           type="button"
           onClick={() => signOut()}
@@ -50,7 +82,7 @@ export function Header() {
             cursor: 'pointer',
           }}
         >
-          Sign out
+          {t('nav.signOut')}
         </button>
       </nav>
     </header>

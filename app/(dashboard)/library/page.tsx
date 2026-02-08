@@ -4,8 +4,10 @@ import { useEffect } from 'react';
 import { useAssetCards } from '@/app/hooks/useAssetCards';
 import { AssetCardDetail } from '@/app/components/features/AssetCard/AssetCardDetail';
 import Link from 'next/link';
+import { useLanguage } from '@/app/context/LanguageContext';
 
 export default function LibraryPage() {
+  const { t } = useLanguage();
   const { libraryCards, loading, error, fetchLibrary } = useAssetCards();
 
   useEffect(() => {
@@ -14,9 +16,9 @@ export default function LibraryPage() {
 
   return (
     <div>
-      <h1 style={{ marginBottom: '0.5rem', fontSize: '1.5rem' }}>Library</h1>
+      <h1 style={{ marginBottom: '0.5rem', fontSize: '1.5rem' }}>{t('library.title')}</h1>
       <p style={{ color: '#64748b', marginBottom: '1.5rem', fontSize: '0.875rem' }}>
-        Approved and edited AssetCards. Use the Export page to copy or download them as README or resume format.
+        {t('library.description')}
       </p>
 
       {error && (
@@ -35,16 +37,16 @@ export default function LibraryPage() {
       )}
 
       {loading && !libraryCards.length ? (
-        <p style={{ color: '#64748b' }}>Loading…</p>
+        <p style={{ color: '#64748b' }}>{t('library.loading')}</p>
       ) : !libraryCards.length ? (
         <p style={{ color: '#64748b', fontSize: '0.875rem' }}>
-          No assets in your library yet. Approve or edit items from the Inbox to add them here.
+          {t('library.empty')}
         </p>
       ) : (
         <>
           <p style={{ marginBottom: '1rem', fontSize: '0.875rem' }}>
             <Link href="/export" style={{ color: '#0f172a', textDecoration: 'underline' }}>
-              Export selected to README or resume →
+              {t('library.exportLink')}
             </Link>
           </p>
           <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '1rem' }}>

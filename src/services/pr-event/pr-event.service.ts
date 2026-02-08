@@ -38,9 +38,10 @@ export interface IngestPREventOptions {
 
 /**
  * Map GitHub webhook action to PREventType
+ * reopened: PR を閉じた後に再度開いた場合。opened と同様に処理する。
  */
 function mapEventType(action: string, merged: boolean): PREventType | null {
-  if (action === 'opened') {
+  if (action === 'opened' || action === 'reopened') {
     return 'opened';
   }
   if (action === 'synchronize') {
@@ -117,15 +118,16 @@ export async function ingestPREvent(options: IngestPREventOptions): Promise<PREv
       return existingEvent;
     }
 
-    // Create PR event document
+    // Create PR event document (Firestore does not accept undefined; omit optional fields)
     const now = Timestamp.now();
+    const prBody = webhookPayload.pull_request.body;
     const prEventData: Omit<PREvent, 'prEventId'> = {
       userId,
       repositoryId,
       prNumber: webhookPayload.pull_request.number,
       eventType,
       prTitle: webhookPayload.pull_request.title,
-      prDescription: webhookPayload.pull_request.body || undefined,
+      ...(prBody != null && prBody !== '' && { prDescription: prBody }),
       prAuthor: webhookPayload.pull_request.user.login,
       prUrl: webhookPayload.pull_request.html_url,
       processingStatus: 'pending' as ProcessingStatus,
@@ -151,6 +153,7 @@ export async function ingestPREvent(options: IngestPREventOptions): Promise<PREv
       prEventId: prEvent.prEventId,
       prNumber: prEvent.prNumber,
       eventType: prEvent.eventType,
+      ...(webhookPayload.action === 'reopened' && { webhookAction: 'reopened' }),
     });
 
     return prEvent;

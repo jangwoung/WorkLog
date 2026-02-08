@@ -2,6 +2,7 @@
 
 import type { RepositoryItem } from '@/app/hooks/useRepositories';
 import { RepositoryCard } from './RepositoryCard';
+import { useLanguage } from '@/app/context/LanguageContext';
 
 interface RepositoryListProps {
   repositories: RepositoryItem[];
@@ -14,10 +15,11 @@ export function RepositoryList({
   onDisconnect,
   disconnectingId,
 }: RepositoryListProps) {
+  const { t } = useLanguage();
   if (repositories.length === 0) {
     return (
       <p style={{ color: '#64748b', fontSize: '0.875rem' }}>
-        No repositories connected. Connect one below to start tracking PRs.
+        {t('repositories.empty')}
       </p>
     );
   }

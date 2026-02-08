@@ -98,7 +98,7 @@ NEXTAUTH_URL=https://worklog-xxxxx-an.a.run.app,\
 GITHUB_WEBHOOK_SECRET=あなたのWebhookSecret,\
 FIRESTORE_DATABASE_ID=(default),\
 VERTEX_AI_LOCATION=asia-northeast1,\
-VERTEX_AI_MODEL=gemini-2.0-flash-exp,\
+VERTEX_AI_MODEL=gemini-2.0-flash-001,\
 CLOUD_TASKS_QUEUE_NAME=pr-event-processing,\
 CLOUD_TASKS_LOCATION=asia-northeast1"
 ```

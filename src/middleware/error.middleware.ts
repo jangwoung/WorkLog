@@ -83,4 +83,7 @@ export const Errors = {
     new AppError('CONFLICT', message, 409),
   internal: (message = 'Internal server error', details?: unknown) =>
     new AppError('INTERNAL_SERVER_ERROR', message, 500, details),
+  /** Use when task is already handled (e.g. PR event failed) - returns 200 to stop Cloud Tasks retries */
+  noRetry: (message = 'Task already handled') =>
+    new AppError('ALREADY_HANDLED', message, 200),
 };

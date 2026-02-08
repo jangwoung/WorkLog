@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth } from '@/src/middleware/auth.middleware';
 import { handleError, AppError } from '@/src/middleware/error.middleware';
-import { validateExportRequest } from '@/src/schemas/validation.schemas';
+import { validateExportBody } from '@/src/middleware/validation.middleware';
 import { runExport } from '@/src/services/export/export.service';
 import { logger } from '@/src/utils/logger';
 
@@ -19,15 +19,13 @@ export async function POST(request: NextRequest) {
     }
     userId = authResult.userId;
 
-    const body = await request.json();
-    if (!validateExportRequest(body)) {
-      return NextResponse.json(
-        { error: { code: 'VALIDATION_ERROR', message: 'Invalid request body' } },
-        { status: 400 }
-      );
+    const body = await request.json().catch(() => ({}));
+    const validated = validateExportBody(body);
+    if (validated instanceof Response) {
+      return validated;
     }
 
-    const result = await runExport(body.assetCardIds, body.format, userId);
+    const result = await runExport(validated.assetCardIds, validated.format, userId);
     return NextResponse.json(result);
   } catch (error) {
     if (error instanceof AppError) {

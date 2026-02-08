@@ -1,24 +1,28 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { VertexAI } from '@google-cloud/vertexai';
 
 /**
  * Vertex AI Gemini client for LLM transformations
  * Used for Extract → Synthesize pipeline to generate AssetCards
- * 
- * Note: Using @google/generative-ai SDK which works with Vertex AI
- * when GOOGLE_APPLICATION_CREDENTIALS is set
+ *
+ * - On Cloud Run: uses Application Default Credentials (ADC). No GEMINI_API_KEY needed.
+ *   Ensure GOOGLE_CLOUD_PROJECT and VERTEX_AI_LOCATION are set; service account needs roles/aiplatform.user.
+ * - Local: set GOOGLE_APPLICATION_CREDENTIALS or run `gcloud auth application-default login`.
  */
 
-let genAI: GoogleGenerativeAI | null = null;
+let vertexAI: VertexAI | null = null;
 
-function getGenAI(): GoogleGenerativeAI {
-  if (!genAI) {
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-      throw new Error('GEMINI_API_KEY or GOOGLE_APPLICATION_CREDENTIALS environment variable is required');
+function getVertexAI(): VertexAI {
+  if (!vertexAI) {
+    const project = process.env.GOOGLE_CLOUD_PROJECT;
+    const location = process.env.VERTEX_AI_LOCATION;
+    if (!project || !location) {
+      throw new Error(
+        'GOOGLE_CLOUD_PROJECT and VERTEX_AI_LOCATION are required for Vertex AI (Cloud Run uses ADC; no GEMINI_API_KEY needed)'
+      );
     }
-    genAI = new GoogleGenerativeAI(apiKey);
+    vertexAI = new VertexAI({ project, location });
   }
-  return genAI;
+  return vertexAI;
 }
 
 export interface GenerateContentOptions {
@@ -30,28 +34,32 @@ export interface GenerateContentOptions {
 }
 
 /**
- * Generate content using Vertex AI Gemini
- * @param options Generation options
- * @returns Generated text content
+ * Generate content using Vertex AI Gemini (ADC on Cloud Run)
  */
 export async function generateContent(options: GenerateContentOptions): Promise<string> {
-  const client = getGenAI();
-  const modelName = options.model || process.env.VERTEX_AI_MODEL || 'gemini-1.5-pro';
+  const ai = getVertexAI();
+  const modelName = options.model || process.env.VERTEX_AI_MODEL || 'gemini-2.5-flash';
 
-  const model = client.getGenerativeModel({
+  const generativeModel = ai.getGenerativeModel({
     model: modelName,
     generationConfig: {
       temperature: options.temperature ?? 0.7,
       maxOutputTokens: options.maxTokens ?? 2048,
     },
     ...(options.systemInstruction && {
-      systemInstruction: options.systemInstruction,
+      systemInstruction: {
+        role: 'system',
+        parts: [{ text: options.systemInstruction }],
+      },
     }),
-  } as Parameters<typeof client.getGenerativeModel>[0]);
+  });
 
-  const result = await model.generateContent(options.prompt);
-  const response = await result.response;
-  const text = response.text();
+  const result = await generativeModel.generateContent({
+    contents: [{ role: 'user', parts: [{ text: options.prompt }] }],
+  });
+
+  const response = result.response;
+  const text = response.candidates?.[0]?.content?.parts?.[0]?.text;
 
   if (!text) {
     throw new Error('No content generated from Vertex AI');
