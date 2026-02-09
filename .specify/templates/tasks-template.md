@@ -10,7 +10,7 @@ description: "Task list template for feature implementation"
 
 **Tests**: The examples below include test tasks. Tests are OPTIONAL - only include them if explicitly requested in the feature specification.
 
-**Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story.
+**Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story. When the feature is AgentRun/AI Review MVP, ensure tasks cover execution gate (intentId/approval), audit report generation, exception handling (reject log, exceptions inbox), and fixed-schema outputs per constitution.
 
 ## Format: `[ID] [P?] [Story] Description`
 
