@@ -8,6 +8,10 @@ const navKeys: { href: string; key: string }[] = [
   { href: '/library', key: 'nav.library' },
   { href: '/repositories', key: 'nav.repositories' },
   { href: '/export', key: 'nav.export' },
+  { href: '/policy', key: 'nav.policy' },
+  { href: '/approvals', key: 'nav.approvals' },
+  { href: '/exceptions', key: 'nav.exceptions' },
+  { href: '/audit', key: 'nav.audit' },
 ];
 
 export function Header() {

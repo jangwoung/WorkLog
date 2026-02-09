@@ -31,14 +31,15 @@
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-Verify compliance with WorkLog Constitution principles:
+Verify compliance with SpecKit Constitution (AgentRun / AI Review MVP) principles:
 
-- **Core Value**: Does this feature produce structured career assets from GitHub activity? (No learning/scheduling features)
-- **Role of AI**: Are AI outputs explainable, reproducible, and schema-driven? (No scoring/grading)
-- **Product Philosophy**: Is this passive and supportive? (Automatic accumulation preferred)
-- **UX Principles**: Are user actions minimized? (Approval/editing over creation, inbox-style flows)
-- **Technical Constraints**: Are pipelines deterministic? (Fixed schemas, agents only when clearly needed)
-- **Non-goals**: Does this avoid learning plans, social features, or enterprise assumptions?
+- **P-01 (実行はIntentなしに存在しない)**: Is every AgentRun gated by intentId? (Reject 4xx and log if intentId missing)
+- **P-02 (リスクは承認で受容される)**: For Med/High risk, is valid Approval required before run? (Low may omit approval)
+- **P-03 (監査は欠損を許容しない)**: Does Audit Report detect and flag missing Intent/Approval/Run/Evidence? (Deficiencies affect success metric)
+- **P-04 (機密は保存しない)**: Is PR diff stored by reference/hash only, not full body? (Minimize persistent sensitive data)
+- **P-05 (採点しない)**: Are AI outputs structured Findings only, no scoring/ranking? (Fixed schema, no human evaluation output)
+
+Guardrails: AgentRun API must enforce intentId (G-01), input minimization (G-02), fixed ReviewOutput schema (G-03), exception logging for unapproved High / break-glass (G-04).
 
 If any principle conflicts, document the conflict and propose a compliant alternative.
 
