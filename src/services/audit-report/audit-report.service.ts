@@ -1,5 +1,5 @@
 import { Timestamp } from '@google-cloud/firestore';
-import { getAgentRunsCollection } from '@/src/infrastructure/firestore/collections';
+import { getAgentRunsCollection, getProvisioningEventsCollection } from '@/src/infrastructure/firestore/collections';
 import { getIntentByIdUnsafe } from '@/src/services/intent/intent.service';
 import { getApprovalById } from '@/src/services/approval/approval.service';
 import { getReviewOutputByRunId } from '@/src/services/review-output/review-output.service';
@@ -73,6 +73,38 @@ async function getRunsInPeriod(from: Date, to: Date, scopeRepo?: string): Promis
   return rows;
 }
 
+interface ProvisioningRow {
+  eventId: string;
+  intentId: string;
+  approvalId: string;
+  resourceUrl: string;
+  structureType?: string;
+  createdAt: string;
+}
+
+async function getProvisioningEventsInPeriod(from: Date, to: Date): Promise<ProvisioningRow[]> {
+  const snapshot = await getProvisioningEventsCollection()
+    .orderBy('createdAt', 'desc')
+    .limit(500)
+    .get();
+  const rows: ProvisioningRow[] = [];
+  for (const doc of snapshot.docs) {
+    const d = doc.data();
+    const createdAt = d.createdAt.toDate();
+    if (createdAt < from || createdAt > to) continue;
+    rows.push({
+      eventId: doc.id,
+      intentId: d.intentId,
+      approvalId: d.approvalId,
+      resourceUrl: d.resourceUrl,
+      structureType: d.structureType,
+      createdAt: d.createdAt.toDate().toISOString(),
+    });
+  }
+  rows.sort((a, b) => (b.createdAt > a.createdAt ? 1 : -1));
+  return rows;
+}
+
 export async function generateAuditReport(params: AuditReportParams): Promise<AuditReportResult> {
   const from = new Date(params.from);
   const to = new Date(params.to);
@@ -83,13 +115,16 @@ export async function generateAuditReport(params: AuditReportParams): Promise<Au
     throw new Error('FROM_AFTER_TO');
   }
   const scopeRepo = params.scope?.repo;
-  const runs = await getRunsInPeriod(from, to, scopeRepo);
+  const [runs, provisioningEvents] = await Promise.all([
+    getRunsInPeriod(from, to, scopeRepo),
+    getProvisioningEventsInPeriod(from, to),
+  ]);
   const lines: string[] = [
     `# Audit Report`,
     ``,
     `**Period**: ${params.from} — ${params.to}`,
     scopeRepo ? `**Scope (repo)**: ${scopeRepo}` : '',
-    `**Runs**: ${runs.length}`,
+    `**Runs**: ${runs.length} | **Provisioning events**: ${provisioningEvents.length}`,
     ``,
     `---`,
     ``,
@@ -149,6 +184,34 @@ export async function generateAuditReport(params: AuditReportParams): Promise<Au
 
   if (runs.length === 0) {
     lines.push(`No runs in the selected period.`);
+    lines.push(``);
+  }
+
+  lines.push(`---`);
+  lines.push(``);
+  lines.push(`## Provisioning Events`);
+  lines.push(``);
+  for (const ev of provisioningEvents) {
+    const intent = await getIntentByIdUnsafe(ev.intentId);
+    const approval = await getApprovalById(ev.approvalId);
+    const deficits: string[] = [];
+    if (!intent) {
+      deficits.push('intentId');
+      hasAnyDeficit = true;
+    }
+    if (!approval) {
+      deficits.push('approvalId');
+      hasAnyDeficit = true;
+    }
+    if (deficits.length > 0) {
+      lines.push(`❗ **Event ${ev.eventId}**: Missing ${deficits.join(', ')}`);
+    }
+    lines.push(`- **Event**: ${ev.eventId} | **Intent**: ${intent ? intent.goal : '(missing)'} | **Approval**: ${approval ? approval.status : '(missing)'}`);
+    lines.push(`  - **Resource**: ${ev.resourceUrl}${ev.structureType ? ` (${ev.structureType})` : ''} | ${ev.createdAt}`);
+    lines.push(``);
+  }
+  if (provisioningEvents.length === 0) {
+    lines.push(`No provisioning events in the selected period.`);
     lines.push(``);
   }
 

@@ -115,6 +115,24 @@ export interface ExceptionEventRecord {
   createdAt: Timestamp;
 }
 
+// --- 003 Project provisioning (data-model.md) ---
+
+export interface ProvisioningEventRecord {
+  eventId: string;
+  intentId: string;
+  approvalId: string;
+  actorId: string;
+  resourceType: string;
+  resourceId: string;
+  resourceUrl: string;
+  structureType?: string;
+  createdAt: Timestamp;
+}
+
+export function getProvisioningEventsCollection(): CollectionReference<ProvisioningEventRecord> {
+  return getFirestoreClient().collection('provisioning_events') as CollectionReference<ProvisioningEventRecord>;
+}
+
 export function getIntentsCollection(): CollectionReference<IntentRecord> {
   return getFirestoreClient().collection('intents') as CollectionReference<IntentRecord>;
 }

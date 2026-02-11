@@ -120,6 +120,27 @@ export class GitHubClient {
       hook_id: webhookId,
     });
   }
+
+  /**
+   * Create a repository for the authenticated user (003 provisioning)
+   */
+  async createRepository(params: { name: string; private?: boolean; description?: string }): Promise<{
+    id: number;
+    full_name: string;
+    html_url: string;
+  }> {
+    const { data } = await this.octokit.repos.createForAuthenticatedUser({
+      name: params.name,
+      private: params.private ?? false,
+      description: params.description ?? undefined,
+      auto_init: true,
+    });
+    return {
+      id: data.id,
+      full_name: data.full_name,
+      html_url: data.html_url ?? `https://github.com/${data.full_name}`,
+    };
+  }
 }
 
 /**

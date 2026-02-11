@@ -1,0 +1,31 @@
+# Dependencies and build
+node_modules/
+.next/
+out/
+build/
+dist/
+*.tsbuildinfo
+
+# Git and env
+.git/
+.gitignore
+.env*
+*.log*
+
+# Docs and specs (not needed in runtime image)
+docs/
+specs/
+*.md
+!README.md
+
+# Testing and coverage
+coverage/
+*.test.ts
+*.spec.ts
+
+# IDE and misc
+.DS_Store
+.vscode/
+.idea/
+*.tmp
+*.swp
