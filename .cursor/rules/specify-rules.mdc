@@ -5,6 +5,8 @@ Auto-generated from all feature plans. Last updated: 2026-01-26
 ## Active Technologies
 - TypeScript 5.x, Node 20.x (align with existing WorkLog) + Next.js 16 (App Router), Firestore, existing auth (NextAuth) (002-ai-review-governance)
 - Firestore (new collections: intents, approvals, agent_runs, review_outputs, evidences; optional: exception_events, audit_exports) (002-ai-review-governance)
+- TypeScript 5.x, Node 20.x (align with existing WorkLog) + Next.js 16 (App Router), Firestore, NextAuth (GitHub OAuth), Cloud Tasks, Vertex AI (Gemini) (003-worklog-career-ai-governance)
+- Firestore — existing collections (users, repositories, pr-events, asset-cards, decision-logs, intents, approvals, agent_runs, review_outputs, evidences, exception_events); new collection: provisioning_events (003-worklog-career-ai-governance)
 
 - TypeScript 5.x, Node.js 20.x + Next.js 14 (App Router), @google-cloud/firestore, @google-cloud/tasks, @google-cloud/aiplatform (Vertex AI), NextAuth.js (GitHub OAuth) (001-github-asset-generator)
 
@@ -24,9 +26,10 @@ npm test && npm run lint
 TypeScript 5.x, Node.js 20.x: Follow standard conventions
 
 ## Recent Changes
+- 003-worklog-career-ai-governance: Added TypeScript 5.x, Node 20.x (align with existing WorkLog) + Next.js 16 (App Router), Firestore, NextAuth (GitHub OAuth), Cloud Tasks, Vertex AI (Gemini)
+- 003-worklog-career-ai-governance: Added TypeScript 5.x, Node 20.x (align with existing WorkLog) + Next.js 16 (App Router), Firestore, NextAuth (GitHub OAuth), Cloud Tasks, Vertex AI (Gemini)
 - 002-ai-review-governance: Added TypeScript 5.x, Node 20.x (align with existing WorkLog) + Next.js 16 (App Router), Firestore, existing auth (NextAuth)
 
-- 001-github-asset-generator: Added TypeScript 5.x, Node.js 20.x + Next.js 14 (App Router), @google-cloud/firestore, @google-cloud/tasks, @google-cloud/aiplatform (Vertex AI), NextAuth.js (GitHub OAuth)
 
 <!-- MANUAL ADDITIONS START -->
 <!-- MANUAL ADDITIONS END -->
